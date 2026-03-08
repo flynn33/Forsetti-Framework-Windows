@@ -40,7 +40,7 @@ ctest --preset debug --output-on-failure
 ## Patent Notice
 
 The architecture and design of Forsetti are the subject of a pending U.S. patent application:
-**Compatibility-Governed, Entitlement-Aware Modular Runtime Framework for Native Application Modules** — Filed March 8, 2026. Patent Pending.
+**Compatibility-Governed, Entitlement-Aware Modular Runtime Framework for Native Application Modules** — U.S. Application No. 63/999,606, filed March 8, 2026. Patent Pending.
 
 ## License
 

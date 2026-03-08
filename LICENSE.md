@@ -13,6 +13,7 @@ The Software is provided "AS IS", without warranty of any kind, express or impli
 The architecture and design of this software are the subject of a pending U.S. patent application:
 
 **Title:** Compatibility-Governed, Entitlement-Aware Modular Runtime Framework for Native Application Modules
+**Application No.:** 63/999,606
 **Application Type:** Utility - Provisional Application under 35 USC 111(b)
 **Filing Date:** March 8, 2026
 **Inventor:** James Daley
