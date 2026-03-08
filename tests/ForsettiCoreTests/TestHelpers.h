@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
 // Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential.
+// Proprietary and Confidential. Patent Pending.
 //
 // Test helper classes — mock/stub doubles for use with Microsoft CppUnitTest.
 

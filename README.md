@@ -37,6 +37,11 @@ cmake --build --preset debug
 ctest --preset debug --output-on-failure
 ```
 
+## Patent Notice
+
+The architecture and design of Forsetti are the subject of a pending U.S. patent application:
+**Compatibility-Governed, Entitlement-Aware Modular Runtime Framework for Native Application Modules** — Filed March 8, 2026. Patent Pending.
+
 ## License
 
 Proprietary. Copyright (c) 2026 James Daley. All Rights Reserved.

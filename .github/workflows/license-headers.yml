@@ -25,7 +25,7 @@ jobs:
           $requiredLines = @(
             "Forsetti Framework for Windows",
             "Copyright (c) 2026 James Daley. All Rights Reserved.",
-            "Proprietary and Confidential."
+            "Proprietary and Confidential. Patent Pending."
           )
 
           $sourceFiles = Get-ChildItem -Path "include", "src" -Recurse -Include "*.h", "*.cpp" -ErrorAction SilentlyContinue

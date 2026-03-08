@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
 // Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential.
+// Proprietary and Confidential. Patent Pending.
 //
 // Architecture enforcement tests — verify one-way dependency rules (R006).
 // Scans #include directives in source files to ensure:
