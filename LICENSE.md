@@ -1,0 +1,11 @@
+# Proprietary License
+
+Copyright (c) 2026 James Daley. All Rights Reserved.
+
+This software and associated documentation files (the "Software") are proprietary
+and confidential. Unauthorized copying, distribution, modification, or use of this
+Software, via any medium, is strictly prohibited.
+
+The Software is provided "AS IS", without warranty of any kind, express or implied.
+
+For licensing inquiries, contact the copyright holder.
