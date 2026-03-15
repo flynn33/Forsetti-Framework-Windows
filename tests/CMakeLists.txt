@@ -6,6 +6,32 @@
 # These tests only build on Windows with MSVC.
 
 if(MSVC)
+    set(VSTEST_CONSOLE_EXE "")
+
+    if(DEFINED CMAKE_GENERATOR_INSTANCE AND
+       EXISTS "${CMAKE_GENERATOR_INSTANCE}/Common7/IDE/Extensions/TestPlatform/vstest.console.exe")
+        set(VSTEST_CONSOLE_EXE
+            "${CMAKE_GENERATOR_INSTANCE}/Common7/IDE/Extensions/TestPlatform/vstest.console.exe")
+    elseif(DEFINED ENV{VSINSTALLDIR} AND NOT "$ENV{VSINSTALLDIR}" STREQUAL "" AND
+           EXISTS "$ENV{VSINSTALLDIR}Common7/IDE/Extensions/TestPlatform/vstest.console.exe")
+        set(VSTEST_CONSOLE_EXE
+            "$ENV{VSINSTALLDIR}Common7/IDE/Extensions/TestPlatform/vstest.console.exe")
+    endif()
+
+    if(VSTEST_CONSOLE_EXE STREQUAL "")
+        find_program(
+            VSTEST_CONSOLE_EXE
+            NAMES vstest.console.exe
+            HINTS
+                "${CMAKE_GENERATOR_INSTANCE}/Common7/IDE/Extensions/TestPlatform"
+                "$ENV{VSINSTALLDIR}Common7/IDE/Extensions/TestPlatform"
+        )
+    endif()
+
+    if(NOT VSTEST_CONSOLE_EXE)
+        message(FATAL_ERROR "Unable to locate vstest.console.exe for CppUnitTest registration.")
+    endif()
+
     # Visual Studio CppUnitTest framework paths
     # Detect VCInstallDir from the compiler path if not set in environment
     if(DEFINED ENV{VCInstallDir} AND NOT "$ENV{VCInstallDir}" STREQUAL "")
@@ -50,7 +76,7 @@ if(MSVC)
     # Register with ctest via vstest.console
     add_test(
         NAME ForsettiCoreTests
-        COMMAND vstest.console.exe "$<TARGET_FILE:ForsettiCoreTests>" /Platform:x64
+        COMMAND "${VSTEST_CONSOLE_EXE}" "$<TARGET_FILE:ForsettiCoreTests>" /Platform:x64
     )
 
     # --- ForsettiPlatformTests ---
@@ -70,7 +96,7 @@ if(MSVC)
 
     add_test(
         NAME ForsettiPlatformTests
-        COMMAND vstest.console.exe "$<TARGET_FILE:ForsettiPlatformTests>" /Platform:x64
+        COMMAND "${VSTEST_CONSOLE_EXE}" "$<TARGET_FILE:ForsettiPlatformTests>" /Platform:x64
     )
 
     # --- ForsettiArchitectureTests ---
@@ -88,6 +114,6 @@ if(MSVC)
 
     add_test(
         NAME ForsettiArchitectureTests
-        COMMAND vstest.console.exe "$<TARGET_FILE:ForsettiArchitectureTests>" /Platform:x64
+        COMMAND "${VSTEST_CONSOLE_EXE}" "$<TARGET_FILE:ForsettiArchitectureTests>" /Platform:x64
     )
 endif()
