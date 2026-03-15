@@ -40,3 +40,7 @@ desktop.ini
 
 # Claude
 .claude/
+
+# Python discussion automation caches
+__pycache__/
+*.pyc
