@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "max_topics_per_run": 3,
+  "max_topics_per_family_per_run": 1,
+  "family_order": [
+    "technical",
+    "support",
+    "framework_governance"
+  ],
+  "seed_marker_prefix": "forsetti-framework-windows-discussion-seed",
+  "category_preferences": {
+    "technical": [
+      "ideas",
+      "general",
+      "q-a"
+    ],
+    "support": [
+      "q-a",
+      "general",
+      "ideas"
+    ],
+    "framework_governance": [
+      "general",
+      "ideas",
+      "q-a"
+    ]
+  },
+  "seed_sources": [
+    {
+      "id": "wiki_sections",
+      "kind": "markdown_headings",
+      "source_path": "wiki.md",
+      "heading_level": 2,
+      "title_prefix": "Wiki Section",
+      "body_intro": "This topic was generated from the repository wiki guide."
+    },
+    {
+      "id": "readme_sections",
+      "kind": "markdown_headings",
+      "source_path": "README.md",
+      "heading_level": 2,
+      "title_prefix": "README Section",
+      "body_intro": "This topic was generated from the framework README."
+    },
+    {
+      "id": "governance_topics",
+      "kind": "markdown_headings",
+      "source_path": "docs/governance/github_automation_agents.md",
+      "heading_level": 2,
+      "title_prefix": "Governance Topic",
+      "body_intro": "This topic was generated from the repository automation governance guide."
+    }
+  ]
+}

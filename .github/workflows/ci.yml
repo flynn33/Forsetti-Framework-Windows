@@ -27,6 +27,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate discussion automation configs
+        run: |
+          py -3 Scripts\github\discussion_agent.py --validate-config --root .
+          py -3 Scripts\github\discussion_topic_agent.py --validate-config --root .
+          py -3 Scripts\github\discussion_moderation_agent.py --validate-config --root .
+
       - name: Setup vcpkg
         run: |
           cd $env:VCPKG_ROOT

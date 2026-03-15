@@ -37,6 +37,12 @@ cmake --build --preset debug
 ctest --preset debug --output-on-failure
 ```
 
+## Project Guides
+
+- `wiki.md` - conceptual walkthroughs for the core runtime, platform layer, examples, and governance
+- `CONTRIBUTING.md` - contribution and local verification expectations
+- `docs/governance/github_automation_agents.md` - repo discussion automation behavior and boundaries
+
 ## Patent Notice
 
 The architecture and design of Forsetti are the subject of a pending U.S. patent application:

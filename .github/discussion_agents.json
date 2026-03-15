@@ -1,0 +1,138 @@
+{
+  "version": "1.0",
+  "default_agent_id": "support",
+  "response_policy": {
+    "fallback_message": "There is not information available at this time. Check back soon.",
+    "max_sources": 3,
+    "max_excerpt_chars": 280
+  },
+  "agents": [
+    {
+      "id": "technical",
+      "display_name": "Technical Discussion Agent",
+      "category_hints": [
+        "technical",
+        "engineering",
+        "development",
+        "general",
+        "ideas"
+      ],
+      "keywords": {
+        "c++": 8,
+        "c++20": 8,
+        "winui": 7,
+        "windows": 6,
+        "cmake": 7,
+        "build": 6,
+        "compile": 6,
+        "test": 5,
+        "ctest": 6,
+        "vcpkg": 6,
+        "msvc": 6,
+        "manifest": 5,
+        "module manager": 7,
+        "event bus": 7,
+        "service container": 7,
+        "compatibility checker": 7,
+        "entitlement": 6,
+        "platform services": 6
+      },
+      "source_paths": [
+        "README.md",
+        "CMakeLists.txt",
+        "CMakePresets.json",
+        "include/ForsettiCore",
+        "include/ForsettiPlatform",
+        "src/ForsettiCore",
+        "src/ForsettiPlatform",
+        "src/ForsettiModulesExample",
+        "tests",
+        "Scripts",
+        ".github/workflows"
+      ]
+    },
+    {
+      "id": "support",
+      "display_name": "Support Discussion Agent",
+      "category_hints": [
+        "support",
+        "help",
+        "questions",
+        "q&a"
+      ],
+      "keywords": {
+        "support": 7,
+        "help": 7,
+        "how do i": 8,
+        "how can i": 8,
+        "getting started": 8,
+        "setup": 7,
+        "install": 7,
+        "prerequisites": 7,
+        "visual studio": 7,
+        "windows sdk": 6,
+        "cmake preset": 6,
+        "vcpkg": 6,
+        "unable": 6,
+        "cannot": 6,
+        "can't": 6,
+        "build fails": 7,
+        "where can i find": 7,
+        "tests": 5,
+        "guardrails": 5,
+        "workflow": 4
+      },
+      "source_paths": [
+        "README.md",
+        "wiki.md",
+        "CONTRIBUTING.md",
+        "CODE_OF_CONDUCT.md",
+        "CHANGELOG.md",
+        "Scripts",
+        ".github/workflows"
+      ]
+    },
+    {
+      "id": "framework_governance",
+      "display_name": "Framework/Governance Discussion Agent",
+      "category_hints": [
+        "framework",
+        "governance",
+        "design",
+        "ideas",
+        "general"
+      ],
+      "keywords": {
+        "forsetti": 8,
+        "framework": 7,
+        "governance": 8,
+        "guardrails": 8,
+        "architecture": 7,
+        "modular runtime": 8,
+        "compatibility-governed": 8,
+        "module system": 7,
+        "lifecycle": 6,
+        "dependency flow": 7,
+        "policy": 6,
+        "manifest validation": 7,
+        "patent": 5,
+        "entitlement gating": 7,
+        "service container": 6,
+        "ui surface": 6,
+        "instructions": 5
+      },
+      "source_paths": [
+        "README.md",
+        "wiki.md",
+        "agentic-coding-policy.json",
+        "forsetti-instructions.json",
+        "Scripts/check-architecture.ps1",
+        "Scripts/check-dependencies.ps1",
+        "Scripts/check-manifests.ps1",
+        ".github/workflows/guardrails.yml",
+        "include/ForsettiCore",
+        "src/ForsettiCore"
+      ]
+    }
+  ]
+}

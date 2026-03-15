@@ -1,0 +1,94 @@
+{
+  "version": "1.0",
+  "policy_sources": {
+    "code_of_conduct_path": "CODE_OF_CONDUCT.md",
+    "moderation_policy_path": "docs/governance/discussion_moderation_policy.md"
+  },
+  "scan_limits": {
+    "max_discussions_per_scan": 75,
+    "max_comments_per_discussion": 40
+  },
+  "exempt_logins": [
+    "github-actions[bot]",
+    "dependabot[bot]"
+  ],
+  "owner_notification": {
+    "enabled": true,
+    "issue_title": "Discussion Moderation Incident Log"
+  },
+  "admin_blocking": {
+    "enabled_when_token_present": true,
+    "token_env_var": "DISCUSSION_MODERATION_ADMIN_TOKEN"
+  },
+  "rules": [
+    {
+      "id": "hate_speech",
+      "description": "Racist or ethnically demeaning slurs are not allowed in repository discussions.",
+      "block_candidate": true,
+      "terms": [
+        "nigger",
+        "nigga",
+        "chink",
+        "kike",
+        "spic",
+        "raghead",
+        "wetback",
+        "gook"
+      ]
+    },
+    {
+      "id": "vulgar_language",
+      "description": "Vulgar, obscene, or foul language is not allowed in repository discussions.",
+      "block_candidate": false,
+      "terms": [
+        "fuck",
+        "fucking",
+        "fucked",
+        "fucker",
+        "motherfucker",
+        "motherfucking",
+        "bullshit",
+        "shit",
+        "shitty",
+        "cunt",
+        "asshole",
+        "bitch",
+        "bitches",
+        "bastard",
+        "dickhead",
+        "cocksucker",
+        "pussy"
+      ]
+    },
+    {
+      "id": "harassment",
+      "description": "Harassing, abusive, or demeaning attacks are not allowed in repository discussions.",
+      "block_candidate": false,
+      "terms": [
+        "fuck you",
+        "shut up",
+        "you are stupid",
+        "you're stupid",
+        "you are an idiot",
+        "you're an idiot",
+        "you are worthless",
+        "nobody wants you here",
+        "get out of here"
+      ]
+    },
+    {
+      "id": "violent_threats",
+      "description": "Threats, intimidation, or encouragement of self-harm are not allowed in repository discussions.",
+      "block_candidate": true,
+      "terms": [
+        "kill yourself",
+        "go kill yourself",
+        "go die",
+        "drop dead",
+        "i will kill you",
+        "i'll kill you",
+        "burn in hell"
+      ]
+    }
+  ]
+}
