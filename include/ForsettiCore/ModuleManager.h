@@ -104,9 +104,14 @@ private:
     void activateModuleLocked(const std::string& moduleID, bool persistAfterActivation);
 
     void validateResolvedModule(const IForsettiModule& module, const ModuleManifest& manifest) const;
+    [[nodiscard]] std::shared_ptr<ForsettiContext> makeModuleContext(
+        const ModuleManifest& manifest) const;
 
     // UI-specific activation
-    void activateUIModule(const std::string& moduleID, IForsettiUIModule* uiModule);
+    void activateUIModule(
+        const std::string& moduleID,
+        IForsettiUIModule* uiModule,
+        ForsettiContext& moduleContext);
 
     // State persistence
     void persistState();
@@ -125,6 +130,7 @@ private:
     // Module state
     std::unordered_map<std::string, ModuleManifest> manifestsByID_;
     std::unordered_map<std::string, std::unique_ptr<IForsettiModule>> loadedModules_;
+    std::unordered_map<std::string, std::shared_ptr<ForsettiContext>> moduleContexts_;
     std::set<std::string> enabledServiceModuleIDs_;
     std::set<std::string> enabledUIModuleIDs_;
     std::optional<std::string> activeUIModuleID_;
