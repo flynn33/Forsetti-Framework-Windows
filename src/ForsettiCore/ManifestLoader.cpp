@@ -3,10 +3,160 @@
 // Proprietary and Confidential. Patent Pending.
 
 #include "ForsettiCore/ManifestLoader.h"
+#include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <set>
 
 namespace Forsetti {
+
+namespace {
+
+[[noreturn]] void throwInvalidManifest(const std::filesystem::path& path, const std::string& reason) {
+    throw ManifestLoaderException(
+        ManifestLoaderError::InvalidManifest,
+        "Invalid manifest in file: " + path.string() + ": " + reason
+    );
+}
+
+bool isBlank(const std::string& value) {
+    return std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+        return std::isspace(ch) != 0;
+    });
+}
+
+bool isAlphaNumeric(char ch) {
+    return std::isalnum(static_cast<unsigned char>(ch)) != 0;
+}
+
+bool isSafeModuleID(const std::string& value) {
+    if (value.empty() || isBlank(value) || value.front() == '.' || value.back() == '.') {
+        return false;
+    }
+
+    bool sawDot = false;
+    bool segmentHasCharacter = false;
+    char previous = 0;
+
+    for (char ch : value) {
+        if (ch == '.') {
+            if (!segmentHasCharacter || previous == '-') {
+                return false;
+            }
+            sawDot = true;
+            segmentHasCharacter = false;
+        } else if (isAlphaNumeric(ch) || ch == '-') {
+            if (!segmentHasCharacter && ch == '-') {
+                return false;
+            }
+            segmentHasCharacter = true;
+        } else {
+            return false;
+        }
+
+        previous = ch;
+    }
+
+    return sawDot && segmentHasCharacter && previous != '-';
+}
+
+bool isSafeEntryPoint(const std::string& value) {
+    if (value.empty() || isBlank(value)) {
+        return false;
+    }
+
+    const char first = value.front();
+    if (!(std::isalpha(static_cast<unsigned char>(first)) != 0 || first == '_')) {
+        return false;
+    }
+
+    return std::all_of(value.begin() + 1, value.end(), [](char ch) {
+        return std::isalnum(static_cast<unsigned char>(ch)) != 0
+            || ch == '_'
+            || ch == ':'
+            || ch == '.';
+    });
+}
+
+bool hasNegativeComponent(const SemVer& version) {
+    return version.major < 0 || version.minor < 0 || version.patch < 0;
+}
+
+void requireStringField(const nlohmann::json& j, const char* key, const std::filesystem::path& path) {
+    if (!j.contains(key) || !j.at(key).is_string()) {
+        throwInvalidManifest(path, std::string("missing or invalid string field: ") + key);
+    }
+}
+
+void requireObjectField(const nlohmann::json& j, const char* key, const std::filesystem::path& path) {
+    if (!j.contains(key) || !j.at(key).is_object()) {
+        throwInvalidManifest(path, std::string("missing or invalid object field: ") + key);
+    }
+}
+
+void requireArrayField(const nlohmann::json& j, const char* key, const std::filesystem::path& path) {
+    if (!j.contains(key) || !j.at(key).is_array()) {
+        throwInvalidManifest(path, std::string("missing or invalid array field: ") + key);
+    }
+}
+
+void validateManifestJSONShape(const nlohmann::json& j, const std::filesystem::path& path) {
+    requireStringField(j, "schemaVersion", path);
+    requireStringField(j, "moduleID", path);
+    requireStringField(j, "displayName", path);
+    requireObjectField(j, "moduleVersion", path);
+    requireStringField(j, "moduleType", path);
+    requireArrayField(j, "supportedPlatforms", path);
+    requireObjectField(j, "minForsettiVersion", path);
+    requireArrayField(j, "capabilitiesRequested", path);
+    requireStringField(j, "entryPoint", path);
+}
+
+void validateManifest(const ModuleManifest& manifest, const std::filesystem::path& path) {
+    if (manifest.schemaVersion != "1.0") {
+        throwInvalidManifest(path, "unsupported schemaVersion: " + manifest.schemaVersion);
+    }
+
+    if (!isSafeModuleID(manifest.moduleID)) {
+        throwInvalidManifest(path, "moduleID is blank or unsafe: " + manifest.moduleID);
+    }
+
+    if (manifest.displayName.empty() || isBlank(manifest.displayName)) {
+        throwInvalidManifest(path, "displayName is blank");
+    }
+
+    if (!isSafeEntryPoint(manifest.entryPoint)) {
+        throwInvalidManifest(path, "entryPoint is blank or unsafe: " + manifest.entryPoint);
+    }
+
+    if (manifest.supportedPlatforms.empty()) {
+        throwInvalidManifest(path, "supportedPlatforms must not be empty");
+    }
+
+    if (hasNegativeComponent(manifest.moduleVersion)) {
+        throwInvalidManifest(path, "moduleVersion contains a negative component");
+    }
+
+    if (hasNegativeComponent(manifest.minForsettiVersion)) {
+        throwInvalidManifest(path, "minForsettiVersion contains a negative component");
+    }
+
+    if (manifest.maxForsettiVersion.has_value()) {
+        if (hasNegativeComponent(manifest.maxForsettiVersion.value())) {
+            throwInvalidManifest(path, "maxForsettiVersion contains a negative component");
+        }
+
+        if (manifest.maxForsettiVersion.value() < manifest.minForsettiVersion) {
+            throwInvalidManifest(path, "maxForsettiVersion is lower than minForsettiVersion");
+        }
+    }
+
+    if (manifest.iapProductID.has_value() && !isSafeModuleID(manifest.iapProductID.value())) {
+        throwInvalidManifest(path, "iapProductID is blank or unsafe: " + manifest.iapProductID.value());
+    }
+}
+
+} // namespace
 
 // MARK: - ManifestLoader
 
@@ -53,16 +203,17 @@ std::vector<ModuleManifest> ManifestLoader::loadManifests(const std::string& dir
             continue;
         }
 
+        validateManifestJSONShape(j, entry.path());
+
         // Parse the manifest
         ModuleManifest manifest;
         try {
             manifest = j.get<ModuleManifest>();
-        } catch (const nlohmann::json::exception&) {
-            throw ManifestLoaderException(
-                ManifestLoaderError::InvalidManifest,
-                "Invalid manifest in file: " + entry.path().string()
-            );
+        } catch (const std::exception& ex) {
+            throwInvalidManifest(entry.path(), ex.what());
         }
+
+        validateManifest(manifest, entry.path());
 
         // Check for duplicate module IDs
         if (seenModuleIDs.count(manifest.moduleID) > 0) {
