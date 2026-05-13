@@ -38,7 +38,7 @@ class ManifestLoader final {
 public:
     /// Loads all valid module manifests from .json files found recursively in the given directory.
     /// Silently skips JSON files that do not look like manifests.
-    /// Throws ManifestLoaderException on directory errors or duplicate module IDs.
+    /// Throws ManifestLoaderException on directory errors, invalid manifests, or duplicate module IDs.
     static std::vector<ModuleManifest> loadManifests(const std::string& directoryPath);
 
     /// Returns true if the JSON object contains the three required root keys:

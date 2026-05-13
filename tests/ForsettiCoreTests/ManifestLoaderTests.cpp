@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 #include <filesystem>
 #include <fstream>
+#include <stdexcept>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Forsetti;
@@ -184,5 +185,137 @@ public:
         Assert::AreEqual(std::string("FieldTestEntry"), m.entryPoint);
         Assert::IsTrue(m.iapProductID.has_value());
         Assert::AreEqual(std::string("com.test.iap"), m.iapProductID.value());
+    }
+
+    TEST_METHOD(PlatformFromString_RejectsApplePlatforms)
+    {
+        Assert::ExpectException<std::invalid_argument>([]() {
+            (void)platformFromString("iOS");
+        });
+
+        Assert::ExpectException<std::invalid_argument>([]() {
+            (void)platformFromString("macOS");
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsIOSPlatform)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.ios");
+        j["supportedPlatforms"] = nlohmann::json::array({"iOS"});
+        dir.writeManifest("ios.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsMacOSPlatform)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.macos");
+        j["supportedPlatforms"] = nlohmann::json::array({"macOS"});
+        dir.writeManifest("macos.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsMixedNonWindowsPlatform)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.mixed");
+        j["supportedPlatforms"] = nlohmann::json::array({"Windows", "iOS"});
+        dir.writeManifest("mixed.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsMaxVersionLowerThanMinVersion)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.version-range");
+        j["minForsettiVersion"] = {{"major", 2}, {"minor", 0}, {"patch", 0}, {"prerelease", nullptr}};
+        j["maxForsettiVersion"] = {{"major", 1}, {"minor", 0}, {"patch", 0}, {"prerelease", nullptr}};
+        dir.writeManifest("range.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsMissingRequiredManifestField)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.missing-entry");
+        j.erase("entryPoint");
+        dir.writeManifest("missing-entry.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsNegativeVersionComponent)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.negative-version");
+        j["moduleVersion"] = {{"major", 1}, {"minor", -1}, {"patch", 0}, {"prerelease", nullptr}};
+        dir.writeManifest("negative-version.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsBlankModuleID)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON();
+        j["moduleID"] = "   ";
+        dir.writeManifest("blank-id.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsUnsafeModuleID)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON();
+        j["moduleID"] = "../com.test.module";
+        dir.writeManifest("unsafe-id.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsBlankEntryPoint)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.blank-entry");
+        j["entryPoint"] = "";
+        dir.writeManifest("blank-entry.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsUnsafeEntryPoint)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifestJSON("com.test.unsafe-entry");
+        j["entryPoint"] = "../TestModule";
+        dir.writeManifest("unsafe-entry.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
     }
 };

@@ -19,8 +19,6 @@ std::string to_string(Platform platform) {
 
 Platform platformFromString(const std::string& str) {
     if (str == "Windows") return Platform::Windows;
-    if (str == "iOS")     return Platform::Windows; // Map to Windows on this port
-    if (str == "macOS")   return Platform::Windows; // Map to Windows on this port
     throw std::invalid_argument("Unknown Platform string: " + str);
 }
 
