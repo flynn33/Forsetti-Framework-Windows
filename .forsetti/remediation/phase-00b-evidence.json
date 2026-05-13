@@ -1,0 +1,87 @@
+{
+  "phase_id": "00B",
+  "gate_id": "G00B_LOCAL_FIRST_GOVERNANCE",
+  "status": "pass",
+  "accountable_human_owner": "Repository owner/reviewer",
+  "commands": [
+    {
+      "command": "git fetch origin --prune",
+      "result": "pass",
+      "notes": "Confirmed PR #18 was merged and the remote phase branch was deleted."
+    },
+    {
+      "command": "git switch main; git pull --ff-only origin main; git switch -c governance/local-first-tools",
+      "result": "pass",
+      "notes": "Local main was fast-forwarded to merge commit a386767d13fc45588ebdf85ec7d4304c80c4d848 and the neutral Phase 00B branch was created."
+    },
+    {
+      "command": "rg --files inventory scans",
+      "result": "pass",
+      "notes": "No project-local remediation MCP or subagent configuration files were found in the target repository."
+    },
+    {
+      "command": "Local user tool configuration inspection",
+      "result": "pass",
+      "notes": "Configured MCP helper entries were identified and recorded with default local-first use decisions."
+    },
+    {
+      "command": "Get-Command tool availability scan",
+      "result": "pass",
+      "notes": "Local shell tools are available for governance inventory. CMake, CTest, vcpkg, and MSVC tools remain unavailable on PATH in the current shell."
+    },
+    {
+      "command": "Repository automation agent scan",
+      "result": "pass",
+      "notes": "Discussion automation scripts and configs were identified as repository automation, not remediation subagents."
+    },
+    {
+      "command": "Local attribution guard scan",
+      "result": "pass",
+      "notes": "No prohibited attribution markers were found in tracked and new remediation files."
+    },
+    {
+      "command": "py -3 -m json.tool over repository JSON files",
+      "result": "pass",
+      "notes": "Repository JSON files parse after adding Phase 00B evidence."
+    },
+    {
+      "command": "git diff --stat",
+      "result": "pass",
+      "notes": "Diff reviewed and scoped to Phase 00B evidence files only."
+    }
+  ],
+  "files_changed": [
+    ".forsetti/remediation/local-mcp-inventory.json",
+    ".forsetti/remediation/local-subagent-inventory.json",
+    ".forsetti/remediation/mcp-subagent-use-log.md",
+    ".forsetti/remediation/phase-00b-report.md",
+    ".forsetti/remediation/phase-00b-evidence.json"
+  ],
+  "tests": [
+    "No tests added or updated in Phase 00B; this is a governance/evidence phase.",
+    "Local attribution guard scan passed.",
+    "Repository JSON parsing passed."
+  ],
+  "risks": [
+    {
+      "risk": "Configured MCP helpers are launched through package commands whose source is not vendored in this repository.",
+      "severity": "P1",
+      "status": "Recorded; helper use is deferred unless local repository tools are insufficient and use is logged."
+    },
+    {
+      "risk": "No project-local remediation subagents exist in the target repository.",
+      "severity": "P2",
+      "status": "Recorded; no subagents were invoked in Phase 00B."
+    },
+    {
+      "risk": "Repository automation agents exist for GitHub Discussions, but active workflows were intentionally limited during remediation.",
+      "severity": "P2",
+      "status": "Recorded for post-remediation workflow realignment."
+    },
+    {
+      "risk": "Runtime/security findings from the audit remain unresolved by design; they belong to later phases.",
+      "severity": "P0",
+      "status": "Deferred to later remediation phases."
+    }
+  ]
+}
