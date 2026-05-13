@@ -44,7 +44,7 @@ void ForsettiRuntime::boot()
         });
 
     // 4. Restore previously persisted module activations
-    moduleManager_->restorePersistedActivation();
+    (void)moduleManager_->restorePersistedActivation();
 
     // 5. Mark as booted
     isBooted_.store(true, std::memory_order_release);

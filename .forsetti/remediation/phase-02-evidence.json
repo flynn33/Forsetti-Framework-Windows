@@ -1,0 +1,110 @@
+{
+  "phase_id": "02",
+  "gate_id": "G02_RUNTIME_IDENTITY",
+  "status": "pass",
+  "accountable_human_owner": "Repository owner/reviewer",
+  "commands": [
+    {
+      "command": "git fetch origin --prune",
+      "result": "pass",
+      "notes": "Confirmed Phase 01 PR was merged before starting Phase 02."
+    },
+    {
+      "command": "git switch main; git pull --ff-only origin main; git switch -c fix/runtime-activation-factory-identity",
+      "result": "pass",
+      "notes": "Created the Phase 02 branch from updated main."
+    },
+    {
+      "command": "Visual Studio 2022 bundled cmake.exe --build --preset debug",
+      "result": "pass",
+      "notes": "Debug build completed successfully."
+    },
+    {
+      "command": "Visual Studio 2022 bundled ctest.exe --preset debug --output-on-failure",
+      "result": "pass",
+      "notes": "3 of 3 CTest suites passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-architecture.ps1",
+      "result": "pass",
+      "notes": "Architecture checks passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-dependencies.ps1",
+      "result": "pass",
+      "notes": "Dependency checks passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-manifests.ps1",
+      "result": "pass",
+      "notes": "Existing repository manifests passed script validation."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/verify-forsetti-guardrails.ps1",
+      "result": "pass",
+      "notes": "Configure, build, tests, and architecture checks passed with Visual Studio-bundled CMake on PATH and VCPKG_ROOT set."
+    },
+    {
+      "command": "JSON parsing over tracked and unignored repository JSON files",
+      "result": "pass",
+      "notes": "15 JSON files parsed successfully after evidence was added."
+    },
+    {
+      "command": "Local prohibited-marker scan",
+      "result": "pass",
+      "notes": "No prohibited attribution markers found in tracked and untracked working tree files."
+    },
+    {
+      "command": "rg -n \"Fallback: treat as service|fallback service activation|Silently skip failures during restoration\" in Phase 02 runtime files",
+      "result": "pass",
+      "notes": "No removed fallback or silent-restore marker remains in the Phase 02 runtime files."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "notes": "No whitespace errors reported."
+    },
+    {
+      "command": "git diff --stat",
+      "result": "pass",
+      "notes": "Diff reviewed and scoped to Phase 02 runtime, tests, and evidence files."
+    }
+  ],
+  "files_changed": [
+    "include/ForsettiCore/ModuleManager.h",
+    "src/ForsettiCore/ModuleManager.cpp",
+    "src/ForsettiCore/ForsettiRuntime.cpp",
+    "tests/ForsettiCoreTests/RuntimeLifecycleTests.cpp",
+    "tests/ForsettiCoreTests/TestHelpers.h",
+    ".forsetti/remediation/phase-02-report.md",
+    ".forsetti/remediation/phase-02-evidence.json"
+  ],
+  "tests": [
+    "Runtime_UIManifestReturningServiceOnlyFailsActivationWithoutPersistingState",
+    "Runtime_AppManifestWithoutAppUIContractFailsActivationWithoutPersistingState",
+    "Runtime_FactoryWrongModuleIDFailsActivation",
+    "Runtime_FactoryWrongTypeFailsActivation",
+    "Runtime_FactoryWrongVersionFailsActivation",
+    "Runtime_FactoryMismatchedManifestFailsActivation",
+    "Runtime_ServiceStartFailureDoesNotPersistActiveState",
+    "Runtime_RestoreFailureProducesDiagnosticsAndPersistsReconciledStateOnce",
+    "Runtime_RestoreHonorsSelectedUIModule"
+  ],
+  "risks": [
+    {
+      "risk": "App modules are rejected unless the factory object satisfies both the app marker and UI runtime contract. Broader app/UI semantics remain scheduled for Phase 04.",
+      "severity": "P1",
+      "status": "Accepted Phase 02 runtime contract."
+    },
+    {
+      "risk": "Restore now persists reconciled state once after processing persisted activations; this intentionally drops modules that failed restore from persisted active state.",
+      "severity": "P1",
+      "status": "Accepted Phase 02 restore behavior."
+    },
+    {
+      "risk": "Capability-scoped service/context enforcement remains unresolved by design and belongs to Phase 03.",
+      "severity": "P0",
+      "status": "Deferred to Phase 03."
+    }
+  ]
+}

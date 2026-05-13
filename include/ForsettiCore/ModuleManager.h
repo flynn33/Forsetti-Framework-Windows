@@ -32,7 +32,11 @@ enum class ModuleManagerError {
     IncompatibleModule,
     EntitlementRequired,
     AlreadyActive,
-    NotActive
+    NotActive,
+    ModuleIdentityMismatch,
+    ModuleTypeMismatch,
+    ModuleVersionMismatch,
+    ModuleManifestMismatch
 };
 
 class ModuleManagerException final : public std::runtime_error {
@@ -43,6 +47,24 @@ public:
 
 private:
     ModuleManagerError error_;
+};
+
+struct ActivationRestoreFailure final {
+    std::string moduleID;
+    std::string message;
+
+    bool operator==(const ActivationRestoreFailure&) const = default;
+};
+
+struct ActivationRestoreResult final {
+    std::vector<std::string> restoredModuleIDs;
+    std::vector<ActivationRestoreFailure> failures;
+
+    [[nodiscard]] bool succeeded() const noexcept {
+        return failures.empty();
+    }
+
+    bool operator==(const ActivationRestoreResult&) const = default;
 };
 
 // ---------------------------------------------------------------------------
@@ -68,7 +90,7 @@ public:
     void deactivateModule(const std::string& moduleID);
 
     // Persisted state restoration
-    void restorePersistedActivation();
+    [[nodiscard]] ActivationRestoreResult restorePersistedActivation();
 
     // Getters
     [[nodiscard]] const std::set<std::string>& enabledServiceModuleIDs() const;
@@ -76,8 +98,13 @@ public:
     [[nodiscard]] const std::optional<std::string>& activeUIModuleID() const;
     [[nodiscard]] const std::unordered_map<std::string, ModuleManifest>& manifestsByID() const;
     [[nodiscard]] bool isModuleActive(const std::string& moduleID) const;
+    [[nodiscard]] ActivationRestoreResult lastRestoreResult() const;
 
 private:
+    void activateModuleLocked(const std::string& moduleID, bool persistAfterActivation);
+
+    void validateResolvedModule(const IForsettiModule& module, const ModuleManifest& manifest) const;
+
     // UI-specific activation
     void activateUIModule(const std::string& moduleID, IForsettiUIModule* uiModule);
 
@@ -101,6 +128,7 @@ private:
     std::set<std::string> enabledServiceModuleIDs_;
     std::set<std::string> enabledUIModuleIDs_;
     std::optional<std::string> activeUIModuleID_;
+    ActivationRestoreResult lastRestoreResult_;
 
     mutable std::mutex mutex_;
 };

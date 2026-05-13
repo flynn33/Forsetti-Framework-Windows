@@ -20,6 +20,7 @@
 #include <functional>
 #include <mutex>
 #include <map>
+#include <stdexcept>
 
 namespace Forsetti::Tests {
 
@@ -28,9 +29,17 @@ namespace Forsetti::Tests {
 // -----------------------------------------------------------------------
 class InMemoryActivationStore final : public IActivationStore {
     ActivationState state_;
+    int saveCount_ = 0;
 public:
     ActivationState loadState() const override { return state_; }
-    void saveState(const ActivationState& state) override { state_ = state; }
+    void saveState(const ActivationState& state) override {
+        state_ = state;
+        ++saveCount_;
+    }
+
+    void setState(const ActivationState& state) { state_ = state; }
+    int saveCount() const { return saveCount_; }
+    void resetSaveCount() { saveCount_ = 0; }
 };
 
 // -----------------------------------------------------------------------
@@ -129,6 +138,22 @@ public:
     void stop(ForsettiContext& /*ctx*/) override { started_ = false; }
     UIContributions uiContributions() const override { return contributions_; }
     bool isStarted() const { return started_; }
+};
+
+// -----------------------------------------------------------------------
+// Stub module that fails during start
+// -----------------------------------------------------------------------
+class ThrowingStartModule final : public IForsettiModule {
+    ModuleDescriptor desc_;
+    ModuleManifest manifest_;
+public:
+    ThrowingStartModule(ModuleDescriptor desc, ModuleManifest manifest)
+        : desc_(std::move(desc)), manifest_(std::move(manifest)) {}
+
+    ModuleDescriptor descriptor() const override { return desc_; }
+    ModuleManifest manifest() const override { return manifest_; }
+    void start(ForsettiContext& /*ctx*/) override { throw std::runtime_error("module start failed"); }
+    void stop(ForsettiContext& /*ctx*/) override {}
 };
 
 } // namespace Forsetti::Tests
