@@ -129,7 +129,7 @@
         "Scripts/check-architecture.ps1",
         "Scripts/check-dependencies.ps1",
         "Scripts/check-manifests.ps1",
-        ".github/workflows/guardrails.yml",
+        ".github/workflows",
         "include/ForsettiCore",
         "src/ForsettiCore"
       ]

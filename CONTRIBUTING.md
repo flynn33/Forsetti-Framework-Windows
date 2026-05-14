@@ -1,6 +1,6 @@
 # Contributing to Forsetti Framework - Windows
 
-Thank you for contributing to the Windows implementation of Forsetti. This repository is the Windows C++20 and WinUI 3 framework baseline, so changes should preserve its modular-runtime contracts and validation surfaces.
+Thank you for contributing to the Windows implementation of Forsetti. This repository is the Windows C++20 framework baseline with Windows SDK service adapters and a planned WinUI 3 host template, so changes should preserve its modular-runtime contracts and validation surfaces.
 
 ## Before You Open A Pull Request
 
@@ -14,13 +14,10 @@ Thank you for contributing to the Windows implementation of Forsetti. This repos
 Use the repo-standard commands:
 
 ```powershell
-cmake --preset debug
-cmake --build --preset debug
-ctest --preset debug --output-on-failure
-.\Scripts\check-architecture.ps1
-.\Scripts\check-dependencies.ps1
-.\Scripts\check-manifests.ps1
+.\Scripts\verify-forsetti-guardrails.ps1
 ```
+
+The wrapper configures and builds the debug preset, runs CTest, checks architecture and dependency boundaries, validates manifests, runs pull request compatibility checks, and exercises script regression tests.
 
 ## Contribution Expectations
 

@@ -11,7 +11,7 @@
 ## Version Impact
 
 <!-- Select the appropriate version label for this PR. -->
-<!-- The version-bump workflow will use this to update the version automatically. -->
+<!-- Apply a version label only when the change affects release semantics. -->
 
 - [ ] `version:major` — Breaking change (incompatible API changes)
 - [ ] `version:minor` — New feature (backwards-compatible)
