@@ -11,6 +11,9 @@
 #include <functional>
 #include <stdexcept>
 #include <map>
+#include <optional>
+#include <set>
+#include <vector>
 
 namespace Forsetti {
 
@@ -50,7 +53,8 @@ public:
 enum class ForsettiContextError {
     InvalidModuleID,
     SelfMessageNotAllowed,
-    ReservedNamespace
+    ReservedNamespace,
+    UnscopedModuleContext
 };
 
 class ForsettiContextException final : public std::runtime_error {
@@ -71,6 +75,8 @@ private:
                 return "A module cannot send a message to itself.";
             case ForsettiContextError::ReservedNamespace:
                 return "The 'forsetti.internal.' event namespace is reserved.";
+            case ForsettiContextError::UnscopedModuleContext:
+                return "Module messages require a module-scoped context.";
         }
         return "Unknown ForsettiContext error.";
     }
@@ -91,24 +97,29 @@ public:
 // ---------------------------------------------------------------------------
 class ForsettiContext final {
 public:
-    ForsettiContext(std::shared_ptr<ServiceContainer> services,
+    ForsettiContext(std::shared_ptr<IServiceProvider> services,
                     std::shared_ptr<IForsettiEventBus> eventBus,
                     std::shared_ptr<IForsettiLogger> logger,
                     std::shared_ptr<IOverlayRouter> router,
                     std::shared_ptr<IModuleCommunicationGuard> guard);
 
     // Accessors
-    [[nodiscard]] std::shared_ptr<ServiceContainer> services() const;
+    [[nodiscard]] std::shared_ptr<IServiceProvider> services() const;
     [[nodiscard]] std::shared_ptr<IForsettiEventBus> eventBus() const;
     [[nodiscard]] std::shared_ptr<IForsettiLogger> logger() const;
     [[nodiscard]] std::shared_ptr<IOverlayRouter> router() const;
+    [[nodiscard]] const std::optional<std::string>& moduleID() const noexcept;
+    [[nodiscard]] const std::set<Capability>& grantedCapabilities() const noexcept;
+
+    [[nodiscard]] std::shared_ptr<ForsettiContext> scopedToModule(
+        const std::string& moduleID,
+        const std::vector<Capability>& grantedCapabilities) const;
 
     // Framework event publishing (direct, no guard)
     void publishFrameworkEvent(const ForsettiEvent& event);
 
     // Module-to-module messaging (validated via guard)
-    void sendModuleMessage(const std::string& sourceModuleID,
-                           const std::string& targetModuleID,
+    void sendModuleMessage(const std::string& targetModuleID,
                            const std::string& eventType,
                            const std::map<std::string, std::string>& payload = {});
 
@@ -124,11 +135,13 @@ public:
         std::function<void(const ForsettiEvent&)> handler);
 
 private:
-    std::shared_ptr<ServiceContainer> services_;
+    std::shared_ptr<IServiceProvider> services_;
     std::shared_ptr<IForsettiEventBus> eventBus_;
     std::shared_ptr<IForsettiLogger> logger_;
     std::shared_ptr<IOverlayRouter> router_;
     std::shared_ptr<IModuleCommunicationGuard> guard_;
+    std::optional<std::string> moduleID_;
+    std::set<Capability> grantedCapabilities_;
 };
 
 } // namespace Forsetti

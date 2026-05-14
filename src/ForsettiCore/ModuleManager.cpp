@@ -6,8 +6,89 @@
 #include "ForsettiCore/ManifestLoader.h"
 #include <filesystem>
 #include <algorithm>
+#include <sstream>
+#include <vector>
 
 namespace Forsetti {
+
+namespace {
+
+std::string quoteDiagnosticValue(const std::string& value)
+{
+    return "\"" + value + "\"";
+}
+
+std::string joinDiagnosticParts(const std::vector<std::string>& parts)
+{
+    std::ostringstream stream;
+    for (size_t i = 0; i < parts.size(); ++i) {
+        if (i > 0) {
+            stream << "; ";
+        }
+        stream << parts[i];
+    }
+    return stream.str();
+}
+
+std::string descriptorMismatchMessage(
+    const std::string& field,
+    const std::string& expectedField,
+    const std::string& expectedValue,
+    const std::string& actualField,
+    const std::string& actualValue)
+{
+    return "Module descriptor " + field + " does not match activation manifest: expected " +
+           expectedField + " " + quoteDiagnosticValue(expectedValue) + ", actual " +
+           actualField + " " + quoteDiagnosticValue(actualValue);
+}
+
+std::string manifestValueForField(const nlohmann::json& manifest, const std::string& field)
+{
+    if (!manifest.contains(field)) {
+        return "<missing>";
+    }
+    return manifest.at(field).dump();
+}
+
+std::string manifestDifferenceMessage(
+    const ModuleManifest& bundledManifest,
+    const ModuleManifest& activationManifest)
+{
+    const nlohmann::json expected = activationManifest;
+    const nlohmann::json actual = bundledManifest;
+    const std::vector<std::string> fields = {
+        "schemaVersion",
+        "moduleID",
+        "displayName",
+        "moduleVersion",
+        "moduleType",
+        "supportedPlatforms",
+        "minForsettiVersion",
+        "maxForsettiVersion",
+        "capabilitiesRequested",
+        "iapProductID",
+        "entryPoint"
+    };
+
+    std::vector<std::string> differences;
+    for (const auto& field : fields) {
+        const auto expectedValue = manifestValueForField(expected, field);
+        const auto actualValue = manifestValueForField(actual, field);
+        if (expectedValue != actualValue) {
+            differences.push_back(
+                field + " expected manifest." + field + " " + expectedValue +
+                ", actual bundled." + field + " " + actualValue);
+        }
+    }
+
+    if (differences.empty()) {
+        return "no field-level differences detected";
+    }
+
+    return joinDiagnosticParts(differences);
+}
+
+} // namespace
 
 // ---------------------------------------------------------------------------
 // ModuleManagerException
@@ -113,30 +194,41 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
             "Registry has no factory for entry point: " + manifest.entryPoint);
     }
     validateResolvedModule(*module, manifest);
+    auto moduleContext = makeModuleContext(manifest);
 
     // 6. Route by type
-    if (manifest.moduleType == ModuleType::Service) {
-        module->start(*context_);
-        enabledServiceModuleIDs_.insert(moduleID);
-    } else {
-        auto* uiModule = dynamic_cast<IForsettiUIModule*>(module.get());
-        if (!uiModule) {
-            throw ModuleManagerException(
-                ModuleManagerError::ModuleTypeMismatch,
-                "Module does not satisfy UI activation contract: " + moduleID);
-        }
+    try {
+        if (manifest.moduleType == ModuleType::Service) {
+            module->start(*moduleContext);
+            enabledServiceModuleIDs_.insert(moduleID);
+        } else {
+            auto* uiModule = dynamic_cast<IForsettiUIModule*>(module.get());
+            if (!uiModule) {
+                throw ModuleManagerException(
+                    ModuleManagerError::ModuleTypeMismatch,
+                    "Module does not satisfy UI activation contract: " + moduleID);
+            }
 
-        if (manifest.moduleType == ModuleType::App &&
-            dynamic_cast<IForsettiAppModule*>(module.get()) == nullptr) {
-            throw ModuleManagerException(
-                ModuleManagerError::ModuleTypeMismatch,
-                "App module does not satisfy app activation contract: " + moduleID);
-        }
+            if (manifest.moduleType == ModuleType::App &&
+                dynamic_cast<IForsettiAppModule*>(module.get()) == nullptr) {
+                throw ModuleManagerException(
+                    ModuleManagerError::ModuleTypeMismatch,
+                    "App module does not satisfy app activation contract: " + moduleID);
+            }
 
-        activateUIModule(moduleID, uiModule);
+            activateUIModule(moduleID, uiModule, *moduleContext);
+        }
+    } catch (...) {
+        enabledServiceModuleIDs_.erase(moduleID);
+        enabledUIModuleIDs_.erase(moduleID);
+        if (activeUIModuleID_.has_value() && activeUIModuleID_.value() == moduleID) {
+            activeUIModuleID_.reset();
+        }
+        throw;
     }
 
     // 7. Store loaded module
+    moduleContexts_[moduleID] = std::move(moduleContext);
     loadedModules_[moduleID] = std::move(module);
 
     // 8. Persist state
@@ -149,38 +241,105 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
 // UI Module Activation (private)
 // ---------------------------------------------------------------------------
 
-void ModuleManager::activateUIModule(const std::string& moduleID, IForsettiUIModule* uiModule)
+void ModuleManager::activateUIModule(
+    const std::string& moduleID,
+    IForsettiUIModule* uiModule,
+    ForsettiContext& moduleContext)
 {
-    // 1. Prepare and start the incoming module before mutating active UI state.
     auto contributions = uiModule->uiContributions();
     auto sanitized = sanitizedUIContributions(contributions);
 
-    uiModule->start(*context_);
+    const auto previousID = activeUIModuleID_;
+    IForsettiModule* previousModule = nullptr;
+    ForsettiContext* previousContext = nullptr;
+    std::optional<UIContributions> previousContributions;
 
-    // 2. If there is already an active UI module, deactivate it first.
-    if (activeUIModuleID_.has_value()) {
-        const auto& previousID = activeUIModuleID_.value();
-        auto prevIt = loadedModules_.find(previousID);
+    if (previousID.has_value()) {
+        auto prevIt = loadedModules_.find(previousID.value());
         if (prevIt != loadedModules_.end()) {
-            prevIt->second->stop(*context_);
-            surfaceManager_->removeModuleContributions(previousID);
+            auto contextIt = moduleContexts_.find(previousID.value());
+            previousModule = prevIt->second.get();
+            previousContext =
+                contextIt != moduleContexts_.end() ? contextIt->second.get() : context_.get();
+
+            if (auto* previousUIModule = dynamic_cast<IForsettiUIModule*>(previousModule)) {
+                previousContributions =
+                    sanitizedUIContributions(previousUIModule->uiContributions());
+            }
         }
-        enabledUIModuleIDs_.erase(previousID);
-        // Note: we don't remove from loadedModules_ here — full deactivation
-        // is only done via deactivateModule(). We just switch the active UI.
-        activeUIModuleID_.reset();
     }
 
-    // 3. Add to surface manager
-    surfaceManager_->addModuleContributions(moduleID, sanitized);
+    auto logActivationCleanupFailure = [this, &moduleID](const std::string& message) noexcept {
+        try {
+            if (context_ && context_->logger()) {
+                context_->logger()->log(LogLevel::Warning, message, moduleID);
+            }
+        } catch (...) {
+        }
+    };
 
-    // 4. Rebuild surface state
-    surfaceManager_->rebuildSurfaceState();
+    auto restorePreviousSurface = [&]() noexcept {
+        try {
+            surfaceManager_->removeModuleContributions(moduleID);
+            if (previousID.has_value() && previousContributions.has_value()) {
+                surfaceManager_->addModuleContributions(
+                    previousID.value(), previousContributions.value());
+            }
+            surfaceManager_->rebuildSurfaceState();
+        } catch (const std::exception& ex) {
+            logActivationCleanupFailure(
+                "Failed to restore UI surface after activation failure: " + std::string(ex.what()));
+        } catch (...) {
+            logActivationCleanupFailure(
+                "Failed to restore UI surface after activation failure: unknown error");
+        }
+    };
 
-    // 5. Track as enabled UI module
+    auto stopIncomingAfterFailure = [&]() noexcept {
+        try {
+            uiModule->stop(moduleContext);
+        } catch (const std::exception& ex) {
+            logActivationCleanupFailure(
+                "Failed to stop UI module after activation failure: " + std::string(ex.what()));
+        } catch (...) {
+            logActivationCleanupFailure(
+                "Failed to stop UI module after activation failure: unknown error");
+        }
+    };
+
+    try {
+        if (previousID.has_value()) {
+            surfaceManager_->removeModuleContributions(previousID.value());
+        }
+        surfaceManager_->addModuleContributions(moduleID, sanitized);
+        surfaceManager_->rebuildSurfaceState();
+    } catch (...) {
+        restorePreviousSurface();
+        throw;
+    }
+
+    try {
+        uiModule->start(moduleContext);
+    } catch (...) {
+        stopIncomingAfterFailure();
+        restorePreviousSurface();
+        throw;
+    }
+
+    try {
+        if (previousModule && previousContext) {
+            previousModule->stop(*previousContext);
+        }
+    } catch (...) {
+        stopIncomingAfterFailure();
+        restorePreviousSurface();
+        throw;
+    }
+
+    if (previousID.has_value()) {
+        enabledUIModuleIDs_.erase(previousID.value());
+    }
     enabledUIModuleIDs_.insert(moduleID);
-
-    // 6. Set as active UI module
     activeUIModuleID_ = moduleID;
 }
 
@@ -201,7 +360,10 @@ void ModuleManager::deactivateModule(const std::string& moduleID)
     }
 
     // 2. Stop the module
-    it->second->stop(*context_);
+    auto contextIt = moduleContexts_.find(moduleID);
+    auto& moduleContext =
+        contextIt != moduleContexts_.end() ? *contextIt->second : *context_;
+    it->second->stop(moduleContext);
 
     // 3. Remove from the appropriate enabled set
     enabledServiceModuleIDs_.erase(moduleID);
@@ -216,6 +378,7 @@ void ModuleManager::deactivateModule(const std::string& moduleID)
 
     // 5. Remove from loaded modules
     loadedModules_.erase(it);
+    moduleContexts_.erase(moduleID);
 
     // 6. Persist state
     persistState();
@@ -338,27 +501,48 @@ void ModuleManager::validateResolvedModule(const IForsettiModule& module, const 
     if (descriptor.moduleID != manifest.moduleID) {
         throw ModuleManagerException(
             ModuleManagerError::ModuleIdentityMismatch,
-            "Module descriptor ID does not match activation manifest: " + manifest.moduleID);
+            descriptorMismatchMessage(
+                "moduleID",
+                "manifest.moduleID",
+                manifest.moduleID,
+                "descriptor.moduleID",
+                descriptor.moduleID));
     }
 
     if (descriptor.type != manifest.moduleType) {
         throw ModuleManagerException(
             ModuleManagerError::ModuleTypeMismatch,
-            "Module descriptor type does not match activation manifest: " + manifest.moduleID);
+            descriptorMismatchMessage(
+                "type",
+                "manifest.moduleType",
+                to_string(manifest.moduleType),
+                "descriptor.type",
+                to_string(descriptor.type)));
     }
 
     if (!(descriptor.version == manifest.moduleVersion)) {
         throw ModuleManagerException(
             ModuleManagerError::ModuleVersionMismatch,
-            "Module descriptor version does not match activation manifest: " + manifest.moduleID);
+            descriptorMismatchMessage(
+                "version",
+                "manifest.moduleVersion",
+                manifest.moduleVersion.toString(),
+                "descriptor.version",
+                descriptor.version.toString()));
     }
 
     const auto bundledManifest = module.manifest();
     if (!(bundledManifest == manifest)) {
         throw ModuleManagerException(
             ModuleManagerError::ModuleManifestMismatch,
-            "Module bundled manifest does not match activation manifest: " + manifest.moduleID);
+            "Module bundled manifest does not match activation manifest: " +
+                manifestDifferenceMessage(bundledManifest, manifest));
     }
+}
+
+std::shared_ptr<ForsettiContext> ModuleManager::makeModuleContext(const ModuleManifest& manifest) const
+{
+    return context_->scopedToModule(manifest.moduleID, manifest.capabilitiesRequested);
 }
 
 void ModuleManager::persistState()
