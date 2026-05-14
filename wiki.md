@@ -10,15 +10,19 @@ Forsetti Framework - Windows is the Windows 11 implementation of the framework's
 
 ## Platform Layer
 
-`ForsettiPlatform` provides Windows-specific service implementations. It sits above Core and should remain a realization layer for Windows SDK and WinUI 3 behavior rather than a place where core runtime truth is redefined.
+`ForsettiPlatform` provides Windows-specific service implementations. It sits above Core and should remain a realization layer for Windows SDK behavior rather than a place where core runtime truth is redefined.
 
 ## Example Modules
 
 `ForsettiModulesExample` demonstrates how modules plug into the runtime, register themselves, and interact with the framework contracts. It is a reference surface for examples and validation, not the source of core framework rules.
 
+## Host Template Status
+
+`ForsettiHostTemplate` is a planned WinUI 3 host application layer. Current repository targets build the core runtime, Windows service adapters, example modules, and native tests; host template instructions should stay marked as planned until a target is added.
+
 ## Validation And Guardrails
 
-The repo ships guardrail scripts under `Scripts/` for architecture flow, dependency boundaries, manifest validation, and pull request compatibility. These scripts are part of the framework governance model and should stay aligned with any structural change.
+The repo ships guardrail scripts under `Scripts/` for architecture flow, dependency boundaries, manifest validation, pull request compatibility, and script regression coverage. `Scripts/verify-forsetti-guardrails.ps1` is the local wrapper for build, test, and guardrail evidence. The remote pull request workflow is limited to repository marker scanning during the remediation sequence, so local guardrail output remains the build and test source of truth.
 
 ## Framework Governance
 

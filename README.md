@@ -1,6 +1,6 @@
 # Forsetti Framework — Windows
 
-A modular runtime framework for Windows 11, built with C++20 and WinUI 3.
+A modular runtime framework for Windows 11, built with C++20 and Windows SDK service adapters. The WinUI 3 host template is planned and is not yet a repository target.
 
 ## Overview
 
@@ -24,8 +24,10 @@ UI/app modules must declare the capabilities used by their UI contributions. Too
 ForsettiCore          (Pure C++20, no platform deps)
 ForsettiPlatform      (Windows SDK service implementations) -> Core
 ForsettiModulesExample (Example modules)                    -> Core
-ForsettiHostTemplate  (WinUI 3 host application template)   -> Core + Platform
+ForsettiHostTemplate  (planned WinUI 3 host template)       -> Core + Platform
 ```
+
+`ForsettiHostTemplate` is a planned layer. Current CMake targets build `ForsettiCore`, `ForsettiPlatform`, `ForsettiModulesExample`, and the native test suites.
 
 ## Building
 
@@ -42,6 +44,16 @@ cmake --preset debug
 cmake --build --preset debug
 ctest --preset debug --output-on-failure
 ```
+
+### Guardrails
+
+Run the local guardrail wrapper before opening a pull request:
+
+```powershell
+.\Scripts\verify-forsetti-guardrails.ps1
+```
+
+The wrapper configures, builds, runs CTest, checks architecture and dependency boundaries, validates manifests, runs pull request compatibility checks, and exercises script regression tests. The remote pull request workflow is intentionally limited to repository marker scanning while this remediation sequence is active; build and test evidence is recorded from local guardrail runs.
 
 ## Project Guides
 

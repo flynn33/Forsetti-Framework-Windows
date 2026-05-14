@@ -11,7 +11,7 @@
     {
       "id": "R002",
       "name": "Sealed Framework",
-      "description": "ForsettiCore, ForsettiPlatform, and ForsettiHostTemplate are sealed static libraries. Consumers use public headers only. No subclassing framework classes unless explicitly designed for extension.",
+      "description": "ForsettiCore and ForsettiPlatform are sealed static libraries. ForsettiHostTemplate is a planned sealed host layer. Consumers use public headers only. No subclassing framework classes unless explicitly designed for extension.",
       "severity": "error"
     },
     {
@@ -35,13 +35,13 @@
     {
       "id": "R006",
       "name": "One-Way Dependencies",
-      "description": "ForsettiCore depends on nothing. ForsettiPlatform depends on Core. ForsettiHostTemplate depends on Core + Platform. ForsettiModulesExample depends on Core only. No reverse or lateral imports.",
+      "description": "ForsettiCore depends on nothing. ForsettiPlatform depends on Core. The planned ForsettiHostTemplate layer depends on Core + Platform. ForsettiModulesExample depends on Core only. No reverse or lateral imports.",
       "severity": "error"
     },
     {
       "id": "R007",
       "name": "Run Verification",
-      "description": "Every PR runs Scripts/verify-forsetti-guardrails.ps1 which executes cmake build, ctest, and architecture enforcement checks.",
+      "description": "Before opening a PR, run Scripts/verify-forsetti-guardrails.ps1. The wrapper executes CMake configure/build, CTest, architecture and dependency checks, manifest validation, pull request compatibility checks, and script regression tests.",
       "severity": "error"
     },
     {
@@ -53,7 +53,7 @@
     {
       "id": "R009",
       "name": "CI Build Parity",
-      "description": "CI pipeline (GitHub Actions on windows-latest) must match local build configuration exactly.",
+      "description": "During the remediation sequence, remote pull request enforcement is limited to repository marker scanning while local verification uses Scripts/verify-forsetti-guardrails.ps1 for build, test, and guardrail evidence. Restore full remote parity when the aligned workflow set is added.",
       "severity": "error"
     }
   ],

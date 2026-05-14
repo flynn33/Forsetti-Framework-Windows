@@ -4,8 +4,16 @@
 # Validates all ForsettiManifests JSON files for correct schema,
 # required fields, and naming conventions.
 
+param(
+    [string]$RepoRoot = ""
+)
+
 $ErrorActionPreference = "Stop"
-$repoRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+    $repoRoot = Split-Path -Parent $PSScriptRoot
+} else {
+    $repoRoot = (Resolve-Path $RepoRoot).Path
+}
 $violations = @()
 $seenModuleIDs = @{}
 
@@ -13,10 +21,15 @@ Write-Host "=== Manifest Validation ===" -ForegroundColor Cyan
 
 $requiredFields = @("schemaVersion", "moduleID", "displayName", "moduleVersion", "moduleType", "supportedPlatforms", "minForsettiVersion", "entryPoint")
 $validModuleTypes = @("service", "ui", "app")
+$validPlatforms = @("Windows")
 $validCapabilities = @("networking", "storage", "secure_storage", "file_export", "telemetry", "routing_overlay", "toolbar_items", "view_injection", "ui_theme_mask", "event_publishing")
 
 # Find all manifest JSON files
-$manifestDirs = Get-ChildItem -Path "$repoRoot\src" -Recurse -Directory -Filter "ForsettiManifests" -ErrorAction SilentlyContinue
+$srcRoot = Join-Path $repoRoot "src"
+$manifestDirs = @()
+if (Test-Path $srcRoot) {
+    $manifestDirs = Get-ChildItem -Path $srcRoot -Recurse -Directory -Filter "ForsettiManifests" -ErrorAction SilentlyContinue
+}
 $manifestFiles = @()
 foreach ($dir in $manifestDirs) {
     $manifestFiles += Get-ChildItem -Path $dir.FullName -Filter "*.json" -ErrorAction SilentlyContinue
@@ -59,18 +72,23 @@ foreach ($file in $manifestFiles) {
         $violations += "$rel - Invalid moduleType '$($manifest.moduleType)' (must be one of: $($validModuleTypes -join ', '))"
     }
 
-    # Validate supportedPlatforms includes "windows"
+    # Validate supportedPlatforms uses exact repository casing and includes Windows
     if ($manifest.supportedPlatforms) {
         $platforms = @($manifest.supportedPlatforms)
-        if ("windows" -notin $platforms) {
-            $violations += "$rel - supportedPlatforms must include 'windows'"
+        foreach ($platform in $platforms) {
+            if ($platform -cnotin $validPlatforms) {
+                $violations += "$rel - Invalid supportedPlatforms value '$platform' (valid: $($validPlatforms -join ', '))"
+            }
+        }
+        if ("Windows" -cnotin $platforms) {
+            $violations += "$rel - supportedPlatforms must include 'Windows'"
         }
     }
 
     # Validate capabilitiesRequested (if present)
     if ($manifest.capabilitiesRequested) {
         foreach ($cap in $manifest.capabilitiesRequested) {
-            if ($cap -notin $validCapabilities) {
+            if ($cap -cnotin $validCapabilities) {
                 $violations += "$rel - Unknown capability '$cap' (valid: $($validCapabilities -join ', '))"
             }
         }

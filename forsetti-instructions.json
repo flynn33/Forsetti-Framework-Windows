@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "projectName": "Forsetti Framework — Windows",
-  "projectDescription": "A modular runtime framework for Windows 11, built with C++20 and WinUI 3. Port of the Forsetti Framework from Swift/SwiftUI.",
+  "projectDescription": "A modular runtime framework for Windows 11, built with C++20 and Windows SDK service adapters. The WinUI 3 host application template is planned and is not yet a repository target.",
   "owner": "James Daley",
   "license": "Proprietary",
   "principles": [
@@ -33,12 +33,13 @@
       },
       {
         "name": "ForsettiHostTemplate",
-        "type": "static_library",
-        "description": "WinUI 3 host application template with framework chrome.",
+        "type": "planned_static_library",
+        "status": "planned",
+        "description": "Planned WinUI 3 host application template with framework chrome.",
         "dependencies": ["ForsettiCore", "ForsettiPlatform"]
       }
     ],
-    "dependencyRule": "One-way only. Core depends on nothing. Platform depends on Core. HostTemplate depends on Core and Platform. ModulesExample depends on Core only. No reverse or lateral dependencies."
+    "dependencyRule": "One-way only. Core depends on nothing. Platform depends on Core. The planned HostTemplate layer depends on Core and Platform. ModulesExample depends on Core only. No reverse or lateral dependencies."
   },
   "moduleModel": {
     "types": ["service", "ui", "app"],
@@ -114,7 +115,7 @@
     "ConsoleLogger"
   ],
   "hostAppContract": {
-    "description": "Host applications use ForsettiHostTemplate for turnkey integration or build custom hosts using ForsettiCore + ForsettiPlatform.",
+    "description": "The planned ForsettiHostTemplate will provide turnkey integration. Current host applications build custom hosts using ForsettiCore + ForsettiPlatform.",
     "components": [
       "ForsettiHostController",
       "ForsettiHostBootstrap",
