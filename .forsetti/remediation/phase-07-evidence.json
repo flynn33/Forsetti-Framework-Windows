@@ -1,0 +1,247 @@
+{
+  "phase_id": "07",
+  "gate_id": "G07_FINAL_ACCEPTANCE",
+  "status": "pass",
+  "accountable_human_owner": "Flynn33",
+  "commands": [
+    {
+      "command": "gh pr view 25 --json number,url,state,mergedAt,statusCheckRollup,headRefName,baseRefName",
+      "result": "pass",
+      "notes": "Confirmed Phase 06 PR was merged and its remote marker guard passed before Phase 07 started."
+    },
+    {
+      "command": "git fetch origin --prune; git switch main; git pull --ff-only origin main; git switch -c test/final-windows-acceptance",
+      "result": "pass",
+      "notes": "Created the Phase 07 branch from updated main."
+    },
+    {
+      "command": "git status --short --branch",
+      "result": "pass",
+      "notes": "Working tree was clean before evidence files were added."
+    },
+    {
+      "command": "cmake --list-presets",
+      "result": "pass",
+      "notes": "Repository exposes debug and release presets."
+    },
+    {
+      "command": "cmake --version",
+      "result": "pass",
+      "notes": "Visual Studio bundled CMake 3.31.6-msvc6 is available."
+    },
+    {
+      "command": "vcpkg.exe version",
+      "result": "pass",
+      "notes": "Visual Studio bundled vcpkg 2025-11-19 is available."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/verify-forsetti-guardrails.ps1",
+      "result": "pass",
+      "notes": "Configure, build, CTest, architecture, dependency, manifest, compatibility, and script regression checks passed."
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "pass",
+      "notes": "Debug configure completed with the Visual Studio vcpkg toolchain."
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "result": "pass",
+      "notes": "Debug build completed with MSBuild 17.14.40."
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "result": "pass",
+      "notes": "3 of 3 CTest suites passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-architecture.ps1",
+      "result": "pass",
+      "notes": "Architecture checks passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-dependencies.ps1",
+      "result": "pass",
+      "notes": "Dependency checks passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-manifests.ps1",
+      "result": "pass",
+      "notes": "2 manifest files passed validation."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-pr-compatibility.ps1",
+      "result": "pass",
+      "notes": "Compatibility checks passed with 173 TEST_METHOD declarations against the 131 baseline."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/test-guardrail-scripts.ps1",
+      "result": "pass",
+      "notes": "Script regression tests passed."
+    },
+    {
+      "command": "JSON parsing over tracked and unignored repository JSON files",
+      "result": "pass",
+      "notes": "19 JSON files parsed before Phase 07 evidence was added."
+    },
+    {
+      "command": "Local marker scan over tracked and unignored repository files",
+      "result": "pass",
+      "notes": "No prohibited markers found."
+    },
+    {
+      "command": "Phase evidence existence check",
+      "result": "pass",
+      "notes": "Phase 00 through Phase 06 reports and evidence files exist."
+    },
+    {
+      "command": "Phase evidence status summary",
+      "result": "pass",
+      "notes": "Phase 00 through Phase 06 evidence files all report pass."
+    },
+    {
+      "command": "Non-native dependency manifest scan",
+      "result": "pass",
+      "notes": "No package manager manifests were found beyond the repository's native/vcpkg manifest."
+    },
+    {
+      "command": "Production runtime dependency scan",
+      "result": "pass",
+      "notes": "Matches were limited to repository automation scripts; no production runtime dependency was found."
+    },
+    {
+      "command": "Remediation drift search",
+      "result": "pass",
+      "notes": "Matches were expected references for planned host-template status, platform adapter names, test vectors, and source identity fields."
+    },
+    {
+      "command": "git diff --stat",
+      "result": "pass",
+      "notes": "Diff was empty before Phase 07 evidence files were added."
+    }
+  ],
+  "commands_not_run": [
+    {
+      "command": "cmake --preset windows-msvc-debug",
+      "reason": "The package-listed preset is not present in this repository. The debug preset was run and passed."
+    },
+    {
+      "command": "cmake --build --preset windows-msvc-debug",
+      "reason": "The package-listed preset is not present in this repository. The debug build preset was run and passed."
+    },
+    {
+      "command": "ctest --preset windows-msvc-debug --output-on-failure",
+      "reason": "The package-listed preset is not present in this repository. The debug test preset was run and passed."
+    }
+  ],
+  "files_changed": [
+    ".forsetti/remediation/phase-07-report.md",
+    ".forsetti/remediation/phase-07-final-report.md",
+    ".forsetti/remediation/phase-07-evidence.json"
+  ],
+  "tests": [
+    "ForsettiCoreTests",
+    "ForsettiPlatformTests",
+    "ForsettiArchitectureTests",
+    "Scripts/test-guardrail-scripts.ps1"
+  ],
+  "phase_gate_summary": [
+    {
+      "phase_id": "00",
+      "gate_id": "G00_BASELINE_LOCK",
+      "status": "pass"
+    },
+    {
+      "phase_id": "00B",
+      "gate_id": "G00B_LOCAL_FIRST_GOVERNANCE",
+      "status": "pass"
+    },
+    {
+      "phase_id": "01",
+      "gate_id": "G01_MANIFEST_PARITY",
+      "status": "pass"
+    },
+    {
+      "phase_id": "02",
+      "gate_id": "G02_RUNTIME_IDENTITY",
+      "status": "pass"
+    },
+    {
+      "phase_id": "03",
+      "gate_id": "G03_CAPABILITY_ENFORCEMENT",
+      "status": "pass"
+    },
+    {
+      "phase_id": "04",
+      "gate_id": "G04_UI_SEMANTICS",
+      "status": "pass"
+    },
+    {
+      "phase_id": "05",
+      "gate_id": "G05_PLATFORM_SECURITY",
+      "status": "pass"
+    },
+    {
+      "phase_id": "06",
+      "gate_id": "G06_GUARDRAIL_CONSISTENCY",
+      "status": "pass"
+    },
+    {
+      "phase_id": "07",
+      "gate_id": "G07_FINAL_ACCEPTANCE",
+      "status": "pass"
+    }
+  ],
+  "risks": [
+    {
+      "risk": "Full remote build/test parity remains intentionally paused during remediation and should be restored with newly aligned workflows after acceptance.",
+      "severity": "P1",
+      "owner_decision_needed": true
+    },
+    {
+      "risk": "The package-listed windows-msvc-debug preset does not exist in this checkout; repository validation uses the debug preset.",
+      "severity": "P2",
+      "owner_decision_needed": true
+    },
+    {
+      "risk": "vcpkg.json still has no builtin-baseline, so dependency resolution is not locked by the manifest alone.",
+      "severity": "P1",
+      "owner_decision_needed": true
+    },
+    {
+      "risk": "ForsettiHostTemplate remains planned and not implemented as a CMake target.",
+      "severity": "P2",
+      "owner_decision_needed": true
+    },
+    {
+      "risk": "Theme masks remain reserved and stripped even when declared; exposing module-owned theme policy needs a future owner decision.",
+      "severity": "P2",
+      "owner_decision_needed": true
+    },
+    {
+      "risk": "UI field-shape validation beyond capability checks, such as duplicate toolbar IDs or unknown host slots, remains future hardening work.",
+      "severity": "P2",
+      "owner_decision_needed": false
+    },
+    {
+      "risk": "Live WinHTTP success-path coverage is not included in deterministic unit tests; future integration coverage should use a controlled local HTTP server.",
+      "severity": "P2",
+      "owner_decision_needed": false
+    },
+    {
+      "risk": "Capability-scoped service resolution gates known platform service interfaces; future governed services must be added to the capability mapping.",
+      "severity": "P2",
+      "owner_decision_needed": false
+    },
+    {
+      "risk": "Module-originated general event publishing beyond module-to-module messages remains an API design question.",
+      "severity": "P2",
+      "owner_decision_needed": true
+    },
+    {
+      "risk": "Registry-backed tests use unique roots; future cleanup tooling may remove old test roots under the repository test registry path.",
+      "severity": "P3",
+      "owner_decision_needed": false
+    }
+  ]
+}
