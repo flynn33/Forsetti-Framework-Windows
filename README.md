@@ -12,6 +12,12 @@ Forsetti is a proprietary modular runtime framework that provides:
 - **UI Surface Management** — Toolbar items, view injections, overlay routing
 - **Entitlement Gating** — IAP-based module unlocking with runtime reconciliation
 
+## Runtime Semantics
+
+Service modules may run concurrently. UI and app modules share a single active surface slot: activating a UI/app module replaces the current active UI/app module, stops the previous one, removes its surface contributions, and persists only the selected UI/app module.
+
+UI/app modules must declare the capabilities used by their UI contributions. Toolbar items require `toolbar_items`, view injections require `view_injection`, overlay schemas and toolbar overlay actions require `routing_overlay`, and toolbar event actions require `event_publishing`. Theme masks remain reserved for framework-owned presentation policy.
+
 ## Architecture
 
 ```

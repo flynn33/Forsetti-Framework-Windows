@@ -1,0 +1,108 @@
+{
+  "phase_id": "04",
+  "gate_id": "G04_UI_SEMANTICS",
+  "status": "pass",
+  "accountable_human_owner": "Flynn33",
+  "commands": [
+    {
+      "command": "gh pr view 22 --json state,statusCheckRollup",
+      "result": "pass",
+      "notes": "Confirmed Phase 03 PR was merged and its remote marker guard passed before starting Phase 04."
+    },
+    {
+      "command": "git fetch origin --prune; git switch main; git pull --ff-only origin main; git switch -c fix/ui-activation-contribution-semantics",
+      "result": "pass",
+      "notes": "Created the Phase 04 branch from updated main."
+    },
+    {
+      "command": "Visual Studio 2022 bundled cmake.exe --build --preset debug",
+      "result": "pass",
+      "notes": "Debug build completed successfully."
+    },
+    {
+      "command": "Visual Studio 2022 bundled ctest.exe --preset debug --output-on-failure",
+      "result": "pass",
+      "notes": "3 of 3 CTest suites passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-architecture.ps1",
+      "result": "pass",
+      "notes": "Architecture checks passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-dependencies.ps1",
+      "result": "pass",
+      "notes": "Dependency checks passed."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/check-manifests.ps1",
+      "result": "pass",
+      "notes": "Existing repository manifests passed script validation."
+    },
+    {
+      "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/verify-forsetti-guardrails.ps1",
+      "result": "pass",
+      "notes": "Configure, build, tests, and architecture checks passed with Visual Studio-bundled CMake on PATH and VCPKG_ROOT set."
+    },
+    {
+      "command": "JSON parsing over tracked and unignored repository JSON files",
+      "result": "pass",
+      "notes": "Repository JSON files parsed successfully after evidence was added."
+    },
+    {
+      "command": "Local marker scan",
+      "result": "pass",
+      "notes": "No prohibited markers found in tracked repository files."
+    },
+    {
+      "command": "rg -n \"CapabilityDenied|validateUIContributions|Runtime_UI.*Capability|Runtime_UISwitchReplacesActiveModuleAndSurface|single active|uiContributionCapabilities\" include src tests README.md forsetti-instructions.json",
+      "result": "pass",
+      "notes": "Reviewed expected Phase 04 runtime, tests, and documentation references."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "notes": "No whitespace errors reported."
+    },
+    {
+      "command": "git diff --stat",
+      "result": "pass",
+      "notes": "Diff reviewed and scoped to Phase 04 runtime, tests, docs, and evidence files."
+    }
+  ],
+  "files_changed": [
+    "include/ForsettiCore/ModuleManager.h",
+    "src/ForsettiCore/ModuleManager.cpp",
+    "tests/ForsettiCoreTests/RuntimeLifecycleTests.cpp",
+    "README.md",
+    "forsetti-instructions.json",
+    ".forsetti/remediation/phase-04-report.md",
+    ".forsetti/remediation/phase-04-evidence.json"
+  ],
+  "tests": [
+    "Runtime_UISurfaceCallbackFailurePreservesPreviousUIModule",
+    "Runtime_UIStartFailureRestoresPreviousSurfaceAndStopsIncoming",
+    "Runtime_UIToolbarContributionRequiresToolbarCapability",
+    "Runtime_UIViewContributionRequiresViewCapability",
+    "Runtime_UIOverlayContributionRequiresRoutingCapability",
+    "Runtime_UIPublishingToolbarActionRequiresEventCapability",
+    "Runtime_UISwitchReplacesActiveModuleAndSurface"
+  ],
+  "risks": [
+    {
+      "risk": "Theme masks remain reserved and stripped even when a module declares ui_theme_mask; a future owner decision is needed before exposing module-owned theme policy.",
+      "severity": "P2",
+      "status": "Owner decision deferred."
+    },
+    {
+      "risk": "UI field-shape validation beyond capability checks, such as duplicate toolbar IDs or unknown host slots, remains a future UI contract hardening task.",
+      "severity": "P2",
+      "status": "Documented follow-up."
+    },
+    {
+      "risk": "Real Windows platform adapter behavior remains scheduled for Phase 05.",
+      "severity": "P1",
+      "status": "Deferred to Phase 05."
+    }
+  ]
+}

@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <sstream>
+#include <type_traits>
 #include <vector>
 
 namespace Forsetti {
@@ -86,6 +87,25 @@ std::string manifestDifferenceMessage(
     }
 
     return joinDiagnosticParts(differences);
+}
+
+bool hasCapability(const std::vector<Capability>& capabilities, Capability capability)
+{
+    return std::find(capabilities.begin(), capabilities.end(), capability) != capabilities.end();
+}
+
+bool actionRequiresCapability(const ToolbarAction& action, Capability capability)
+{
+    return std::visit([capability](const auto& value) {
+        using Action = std::decay_t<decltype(value)>;
+        if constexpr (std::is_same_v<Action, OpenOverlayAction>) {
+            return capability == Capability::RoutingOverlay;
+        } else if constexpr (std::is_same_v<Action, PublishEventAction>) {
+            return capability == Capability::EventPublishing;
+        } else {
+            return false;
+        }
+    }, action);
 }
 
 } // namespace
@@ -216,7 +236,7 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
                     "App module does not satisfy app activation contract: " + moduleID);
             }
 
-            activateUIModule(moduleID, uiModule, *moduleContext);
+            activateUIModule(moduleID, manifest, uiModule, *moduleContext);
         }
     } catch (...) {
         enabledServiceModuleIDs_.erase(moduleID);
@@ -243,10 +263,12 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
 
 void ModuleManager::activateUIModule(
     const std::string& moduleID,
+    const ModuleManifest& manifest,
     IForsettiUIModule* uiModule,
     ForsettiContext& moduleContext)
 {
     auto contributions = uiModule->uiContributions();
+    validateUIContributions(moduleID, contributions, manifest.capabilitiesRequested);
     auto sanitized = sanitizedUIContributions(contributions);
 
     const auto previousID = activeUIModuleID_;
@@ -338,6 +360,8 @@ void ModuleManager::activateUIModule(
 
     if (previousID.has_value()) {
         enabledUIModuleIDs_.erase(previousID.value());
+        loadedModules_.erase(previousID.value());
+        moduleContexts_.erase(previousID.value());
     }
     enabledUIModuleIDs_.insert(moduleID);
     activeUIModuleID_ = moduleID;
@@ -560,6 +584,50 @@ UIContributions ModuleManager::sanitizedUIContributions(const UIContributions& o
     UIContributions sanitized = original;
     sanitized.themeMask = std::nullopt;
     return sanitized;
+}
+
+void ModuleManager::validateUIContributions(
+    const std::string& moduleID,
+    const UIContributions& contributions,
+    const std::vector<Capability>& grantedCapabilities) const
+{
+    auto requireCapability = [&](Capability capability, const std::string& contributionKind) {
+        if (!hasCapability(grantedCapabilities, capability)) {
+            throw ModuleManagerException(
+                ModuleManagerError::CapabilityDenied,
+                "UI contribution requires capability \"" + to_string(capability) +
+                    "\": module " + quoteDiagnosticValue(moduleID) +
+                    " attempted " + contributionKind);
+        }
+    };
+
+    if (!contributions.toolbarItems.empty()) {
+        requireCapability(Capability::ToolbarItems, "toolbar contribution");
+    }
+
+    for (const auto& item : contributions.toolbarItems) {
+        if (actionRequiresCapability(item.action, Capability::RoutingOverlay)) {
+            requireCapability(Capability::RoutingOverlay, "toolbar overlay action");
+        }
+        if (actionRequiresCapability(item.action, Capability::EventPublishing)) {
+            requireCapability(Capability::EventPublishing, "toolbar event action");
+        }
+    }
+
+    if (!contributions.viewInjections.empty()) {
+        requireCapability(Capability::ViewInjection, "view injection contribution");
+    }
+
+    if (contributions.overlaySchema.has_value()) {
+        const auto& overlay = contributions.overlaySchema.value();
+        if (!overlay.navigationPointers.empty() || !overlay.overlayRoutes.empty()) {
+            requireCapability(Capability::RoutingOverlay, "overlay schema contribution");
+        }
+    }
+
+    if (contributions.themeMask.has_value()) {
+        requireCapability(Capability::UIThemeMask, "theme mask contribution");
+    }
 }
 
 } // namespace Forsetti
