@@ -5,15 +5,13 @@
 #pragma once
 #include "ForsettiCore/ForsettiServices.h"
 
+#include <filesystem>
 #include <mutex>
-#include <unordered_map>
 
 namespace Forsetti {
 
 // ---------------------------------------------------------------------------
 // WinHttpNetworkingService — Windows HTTP networking via WinHTTP.
-// Stub: returns a future with an empty byte vector.
-// Phase 2a: Replace with actual WinHTTP implementation.
 // ---------------------------------------------------------------------------
 class WinHttpNetworkingService final : public INetworkingService {
 public:
@@ -24,45 +22,56 @@ public:
 
 // ---------------------------------------------------------------------------
 // RegistryStorageService — Persistent storage backed by Windows Registry.
-// Stub: uses an in-memory std::unordered_map for now.
-// Phase 2a: Replace with actual Windows Registry implementation.
 // ---------------------------------------------------------------------------
 class RegistryStorageService final : public IStorageService {
 public:
+    RegistryStorageService();
+    explicit RegistryStorageService(std::wstring rootSubkey);
+
     void set(const std::string& key, const std::string& value) override;
     std::optional<std::string> get(const std::string& key) override;
     void remove(const std::string& key) override;
 
 private:
+    std::wstring rootSubkey_;
     mutable std::mutex mutex_;
-    std::unordered_map<std::string, std::string> store_;
 };
 
 // ---------------------------------------------------------------------------
 // DpapiSecureStorageService — Secure storage backed by Windows DPAPI.
-// Stub: uses an in-memory std::unordered_map for now.
-// Phase 2a: Replace with actual DPAPI implementation.
 // ---------------------------------------------------------------------------
 class DpapiSecureStorageService final : public ISecureStorageService {
 public:
+    DpapiSecureStorageService();
+    explicit DpapiSecureStorageService(std::wstring rootSubkey);
+
     void set(const std::string& key, const std::vector<uint8_t>& data) override;
     std::optional<std::vector<uint8_t>> get(const std::string& key) override;
     void remove(const std::string& key) override;
 
 private:
+    std::wstring rootSubkey_;
     mutable std::mutex mutex_;
-    std::unordered_map<std::string, std::vector<uint8_t>> store_;
 };
 
 // ---------------------------------------------------------------------------
 // LocalFileExportService — File export to the local filesystem.
-// Stub: returns false (no-op).
-// Phase 2a: Replace with actual file I/O implementation.
 // ---------------------------------------------------------------------------
 class LocalFileExportService final : public IFileExportService {
 public:
+    LocalFileExportService();
+    explicit LocalFileExportService(std::filesystem::path exportDirectory);
+
     bool exportData(const std::vector<uint8_t>& data,
                     const std::string& filename) override;
+
+    [[nodiscard]] const std::filesystem::path& exportDirectory() const noexcept;
+
+    [[nodiscard]] static std::filesystem::path defaultExportDirectory();
+    [[nodiscard]] static std::string sanitizedFilename(const std::string& filename);
+
+private:
+    std::filesystem::path exportDirectory_;
 };
 
 // ---------------------------------------------------------------------------
