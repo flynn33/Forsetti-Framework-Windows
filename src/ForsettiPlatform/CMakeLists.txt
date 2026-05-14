@@ -16,6 +16,10 @@ target_link_libraries(ForsettiPlatform PUBLIC
 )
 
 # Windows SDK libraries for platform services
-# target_link_libraries(ForsettiPlatform PRIVATE winhttp crypt32 shell32)
+target_link_libraries(ForsettiPlatform PRIVATE
+    advapi32
+    crypt32
+    winhttp
+)
 
 # ForsettiPlatform must NOT link to ForsettiHostTemplate or ForsettiModulesExample
