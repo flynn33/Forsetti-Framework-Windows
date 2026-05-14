@@ -105,6 +105,63 @@ namespace {
         };
     }
 
+    UIContributions makeToolbarContributions(const std::string& itemID) {
+        UIContributions contributions;
+        contributions.toolbarItems.push_back(ToolbarItemDescriptor{
+            .itemID = itemID,
+            .title = itemID,
+            .systemImageName = "",
+            .action = NavigateAction{.destinationID = "home"}
+        });
+        return contributions;
+    }
+
+    struct TrackingUIModuleState {
+        bool started = false;
+        int startCount = 0;
+        int stopCount = 0;
+    };
+
+    class TrackingUIModule final : public IForsettiUIModule {
+        ModuleDescriptor desc_;
+        ModuleManifest manifest_;
+        UIContributions contributions_;
+        std::shared_ptr<TrackingUIModuleState> state_;
+        bool throwOnStart_ = false;
+    public:
+        TrackingUIModule(
+            ModuleDescriptor desc,
+            ModuleManifest manifest,
+            UIContributions contributions,
+            std::shared_ptr<TrackingUIModuleState> state,
+            bool throwOnStart = false)
+            : desc_(std::move(desc))
+            , manifest_(std::move(manifest))
+            , contributions_(std::move(contributions))
+            , state_(std::move(state))
+            , throwOnStart_(throwOnStart)
+        {
+        }
+
+        ModuleDescriptor descriptor() const override { return desc_; }
+        ModuleManifest manifest() const override { return manifest_; }
+
+        void start(ForsettiContext& /*ctx*/) override {
+            ++state_->startCount;
+            state_->started = true;
+            if (throwOnStart_) {
+                throw std::runtime_error("ui start failed");
+            }
+        }
+
+        void stop(ForsettiContext& /*ctx*/) override {
+            ++state_->stopCount;
+            state_->started = false;
+        }
+
+        UIContributions uiContributions() const override { return contributions_; }
+    };
+
     void expectModuleManagerError(
         const std::function<void()>& action,
         ModuleManagerError expectedError) {
@@ -114,6 +171,31 @@ namespace {
         } catch (const ModuleManagerException& ex) {
             Assert::IsTrue(ex.error() == expectedError);
         }
+    }
+
+    std::string expectModuleManagerErrorMessage(
+        const std::function<void()>& action,
+        ModuleManagerError expectedError) {
+        std::string message;
+        bool caughtExpectedException = false;
+
+        try {
+            action();
+        } catch (const ModuleManagerException& ex) {
+            caughtExpectedException = true;
+            Assert::IsTrue(ex.error() == expectedError);
+            message = ex.what();
+        }
+
+        if (!caughtExpectedException) {
+            Assert::Fail(L"Expected ModuleManagerException.");
+        }
+
+        return message;
+    }
+
+    void assertContains(const std::string& text, const std::string& expected) {
+        Assert::IsTrue(text.find(expected) != std::string::npos);
     }
 
     struct RuntimeTestFixture {
@@ -386,10 +468,12 @@ public:
 
         runtime.boot();
 
-        expectModuleManagerError([&runtime]() {
+        const auto message = expectModuleManagerErrorMessage([&runtime]() {
             runtime.activateModule("com.test.service");
         }, ModuleManagerError::ModuleIdentityMismatch);
 
+        assertContains(message, "expected manifest.moduleID \"com.test.service\"");
+        assertContains(message, "actual descriptor.moduleID \"com.test.other\"");
         Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.service"));
         Assert::IsTrue(fix.store->loadState().enabledServiceModuleIDs.empty());
     }
@@ -414,10 +498,12 @@ public:
 
         runtime.boot();
 
-        expectModuleManagerError([&runtime]() {
+        const auto message = expectModuleManagerErrorMessage([&runtime]() {
             runtime.activateModule("com.test.service");
         }, ModuleManagerError::ModuleTypeMismatch);
 
+        assertContains(message, "expected manifest.moduleType \"service\"");
+        assertContains(message, "actual descriptor.type \"ui\"");
         Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.service"));
         Assert::IsTrue(fix.store->loadState().enabledServiceModuleIDs.empty());
     }
@@ -443,10 +529,12 @@ public:
 
         runtime.boot();
 
-        expectModuleManagerError([&runtime]() {
+        const auto message = expectModuleManagerErrorMessage([&runtime]() {
             runtime.activateModule("com.test.service");
         }, ModuleManagerError::ModuleVersionMismatch);
 
+        assertContains(message, "expected manifest.moduleVersion \"0.1.0\"");
+        assertContains(message, "actual descriptor.version \"0.2.0\"");
         Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.service"));
         Assert::IsTrue(fix.store->loadState().enabledServiceModuleIDs.empty());
     }
@@ -471,12 +559,129 @@ public:
 
         runtime.boot();
 
-        expectModuleManagerError([&runtime]() {
+        const auto message = expectModuleManagerErrorMessage([&runtime]() {
             runtime.activateModule("com.test.service");
         }, ModuleManagerError::ModuleManifestMismatch);
 
+        assertContains(message, "entryPoint expected manifest.entryPoint \"TestServiceModule\"");
+        assertContains(message, "actual bundled.entryPoint \"DifferentEntryPoint\"");
         Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.service"));
         Assert::IsTrue(fix.store->loadState().enabledServiceModuleIDs.empty());
+    }
+
+    TEST_METHOD(Runtime_UISurfaceCallbackFailurePreservesPreviousUIModule)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.ui-a", "com.test.ui-b"});
+
+        TempRuntimeDir dir;
+        dir.writeManifest("ui-a.json", makeManifestJSON(
+            "com.test.ui-a", "Test UI A", ModuleType::UI, "TestUIModuleA"));
+        dir.writeManifest("ui-b.json", makeManifestJSON(
+            "com.test.ui-b", "Test UI B", ModuleType::UI, "TestUIModuleB"));
+
+        auto stateA = std::make_shared<TrackingUIModuleState>();
+        auto stateB = std::make_shared<TrackingUIModuleState>();
+
+        ModuleRegistry registry;
+        registry.registerModule("TestUIModuleA", [stateA]() -> std::unique_ptr<IForsettiModule> {
+            auto desc = makeDescriptor("com.test.ui-a", "Test UI A", ModuleType::UI);
+            auto manifest = makeManifest("com.test.ui-a", "Test UI A", ModuleType::UI, "TestUIModuleA");
+            return std::make_unique<TrackingUIModule>(
+                desc, manifest, makeToolbarContributions("ui-a-toolbar"), stateA);
+        });
+        registry.registerModule("TestUIModuleB", [stateB]() -> std::unique_ptr<IForsettiModule> {
+            auto desc = makeDescriptor("com.test.ui-b", "Test UI B", ModuleType::UI);
+            auto manifest = makeManifest("com.test.ui-b", "Test UI B", ModuleType::UI, "TestUIModuleB");
+            return std::make_unique<TrackingUIModule>(
+                desc, manifest, makeToolbarContributions("ui-b-toolbar"), stateB);
+        });
+
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+        runtime.activateModule("com.test.ui-a");
+
+        fix.surfaceManager->onChanged([]() {
+            throw std::runtime_error("surface callback failed");
+        });
+
+        try {
+            runtime.activateModule("com.test.ui-b");
+            Assert::Fail(L"Expected surface callback failure.");
+        } catch (const std::runtime_error&) {
+        }
+
+        Assert::AreEqual(std::string("com.test.ui-a"), runtime.moduleManager().activeUIModuleID().value());
+        Assert::IsTrue(runtime.moduleManager().isModuleActive("com.test.ui-a"));
+        Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.ui-b"));
+        Assert::IsTrue(stateA->started);
+        Assert::AreEqual(1, stateA->startCount);
+        Assert::AreEqual(0, stateA->stopCount);
+        Assert::IsFalse(stateB->started);
+        Assert::AreEqual(0, stateB->startCount);
+
+        const auto& toolbarItems = fix.surfaceManager->currentToolbarItems();
+        Assert::AreEqual(size_t(1), toolbarItems.size());
+        Assert::AreEqual(std::string("ui-a-toolbar"), toolbarItems[0].itemID);
+    }
+
+    TEST_METHOD(Runtime_UIStartFailureRestoresPreviousSurfaceAndStopsIncoming)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.ui-a", "com.test.ui-b"});
+
+        TempRuntimeDir dir;
+        dir.writeManifest("ui-a.json", makeManifestJSON(
+            "com.test.ui-a", "Test UI A", ModuleType::UI, "TestUIModuleA"));
+        dir.writeManifest("ui-b.json", makeManifestJSON(
+            "com.test.ui-b", "Test UI B", ModuleType::UI, "TestUIModuleB"));
+
+        auto stateA = std::make_shared<TrackingUIModuleState>();
+        auto stateB = std::make_shared<TrackingUIModuleState>();
+
+        ModuleRegistry registry;
+        registry.registerModule("TestUIModuleA", [stateA]() -> std::unique_ptr<IForsettiModule> {
+            auto desc = makeDescriptor("com.test.ui-a", "Test UI A", ModuleType::UI);
+            auto manifest = makeManifest("com.test.ui-a", "Test UI A", ModuleType::UI, "TestUIModuleA");
+            return std::make_unique<TrackingUIModule>(
+                desc, manifest, makeToolbarContributions("ui-a-toolbar"), stateA);
+        });
+        registry.registerModule("TestUIModuleB", [stateB]() -> std::unique_ptr<IForsettiModule> {
+            auto desc = makeDescriptor("com.test.ui-b", "Test UI B", ModuleType::UI);
+            auto manifest = makeManifest("com.test.ui-b", "Test UI B", ModuleType::UI, "TestUIModuleB");
+            return std::make_unique<TrackingUIModule>(
+                desc, manifest, makeToolbarContributions("ui-b-toolbar"), stateB, true);
+        });
+
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+        runtime.activateModule("com.test.ui-a");
+
+        try {
+            runtime.activateModule("com.test.ui-b");
+            Assert::Fail(L"Expected UI start failure.");
+        } catch (const std::runtime_error&) {
+        }
+
+        Assert::AreEqual(std::string("com.test.ui-a"), runtime.moduleManager().activeUIModuleID().value());
+        Assert::IsTrue(runtime.moduleManager().isModuleActive("com.test.ui-a"));
+        Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.ui-b"));
+        Assert::IsTrue(stateA->started);
+        Assert::AreEqual(1, stateA->startCount);
+        Assert::AreEqual(0, stateA->stopCount);
+        Assert::IsFalse(stateB->started);
+        Assert::AreEqual(1, stateB->startCount);
+        Assert::AreEqual(1, stateB->stopCount);
+
+        const auto& toolbarItems = fix.surfaceManager->currentToolbarItems();
+        Assert::AreEqual(size_t(1), toolbarItems.size());
+        Assert::AreEqual(std::string("ui-a-toolbar"), toolbarItems[0].itemID);
     }
 
     TEST_METHOD(Runtime_ServiceStartFailureDoesNotPersistActiveState)
