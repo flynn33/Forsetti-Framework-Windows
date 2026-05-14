@@ -7,7 +7,8 @@
   "principles": [
     "Strict modularity: all features live inside first- or third-party modules",
     "Framework-mediated everything: modules never talk to each other directly",
-    "Single active UI module at a time; unlimited service modules",
+    "Single active UI/app surface module at a time; unlimited service modules",
+    "UI/app contributions must declare matching capabilities before activation",
     "Entitlement-gated activation with runtime reconciliation"
   ],
   "architecture": {
@@ -42,6 +43,18 @@
   "moduleModel": {
     "types": ["service", "ui", "app"],
     "lifecycle": "discover -> validate -> activate -> deactivate",
+    "activationSemantics": {
+      "serviceModules": "Multiple service modules may be active at the same time.",
+      "uiAndAppModules": "UI and app modules share one active surface slot. Activating one replaces the previous UI/app module and its surface contributions.",
+      "uiContributionCapabilities": {
+        "toolbarItems": "toolbar_items",
+        "viewInjections": "view_injection",
+        "overlaySchema": "routing_overlay",
+        "toolbarOpenOverlayAction": "routing_overlay",
+        "toolbarPublishEventAction": "event_publishing",
+        "themeMask": "reserved for framework-owned presentation policy"
+      }
+    },
     "manifest": {
       "format": "JSON",
       "schemaVersion": "1.0",

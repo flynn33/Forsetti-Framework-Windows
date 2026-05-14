@@ -36,7 +36,8 @@ enum class ModuleManagerError {
     ModuleIdentityMismatch,
     ModuleTypeMismatch,
     ModuleVersionMismatch,
-    ModuleManifestMismatch
+    ModuleManifestMismatch,
+    CapabilityDenied
 };
 
 class ModuleManagerException final : public std::runtime_error {
@@ -110,6 +111,7 @@ private:
     // UI-specific activation
     void activateUIModule(
         const std::string& moduleID,
+        const ModuleManifest& manifest,
         IForsettiUIModule* uiModule,
         ForsettiContext& moduleContext);
 
@@ -118,6 +120,10 @@ private:
 
     // Sanitisation — strips themeMask (reserved for framework use)
     [[nodiscard]] UIContributions sanitizedUIContributions(const UIContributions& original) const;
+    void validateUIContributions(
+        const std::string& moduleID,
+        const UIContributions& contributions,
+        const std::vector<Capability>& grantedCapabilities) const;
 
     // Dependencies
     ModuleRegistry registry_;
