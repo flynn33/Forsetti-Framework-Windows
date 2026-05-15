@@ -8,7 +8,7 @@ Status: discussion automation baseline, documentation sources refreshed
 
 This document describes the GitHub automation added to this repository for discussion responses, topic seeding, and moderation.
 
-The public Wiki and repository documents are part of the repository-grounded source set. Keeping those pages current improves the quality of discussion responses because agents answer only from tracked repository material.
+Repository-tracked documents are the automation source set. The public Wiki is the reader-facing companion to those tracked docs; keep both aligned so discussion responses grounded in repository material remain accurate.
 
 ## Discussion Response Agents
 
@@ -35,7 +35,7 @@ Boundary rules:
 The discussion-topic-seeder workflow scans repository truth on a schedule and opens category-level GitHub Discussions topics when equivalent seeded topics do not already exist.
 
 It works by:
-- reading repository-driven topic sources such as `README.md`, `wiki.md`, the public Wiki page set, and `docs/governance/github_automation_agents.md`
+- reading configured repository-tracked topic sources such as `README.md`, `wiki.md`, and `docs/governance/github_automation_agents.md`
 - deriving candidate topics from repo headings and governance sections
 - classifying each candidate into the technical, support, or framework/governance family using the same repo-grounded routing logic as the response agents
 - selecting at most one new topic per family and at most three total topics per run

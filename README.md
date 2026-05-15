@@ -159,7 +159,9 @@ Manifests live under `ForsettiManifests` directories and use JSON with exact pla
 }
 ```
 
-Supported module types are `service`, `ui`, and `app`. Supported capabilities are:
+Supported module types are `service`, `ui`, and `app`.
+
+Module-requestable capabilities are:
 
 - `networking`
 - `storage`
@@ -169,10 +171,9 @@ Supported module types are `service`, `ui`, and `app`. Supported capabilities ar
 - `routing_overlay`
 - `toolbar_items`
 - `view_injection`
-- `ui_theme_mask`
 - `event_publishing`
 
-`ui_theme_mask` remains reserved for framework-owned presentation policy.
+The runtime also recognizes `ui_theme_mask`, but it is reserved for framework-owned presentation policy. Modules should not request it; UI contribution sanitization strips theme masks from module-provided state.
 
 ## Documentation Map
 
