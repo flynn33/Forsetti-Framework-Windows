@@ -1,12 +1,14 @@
 # GitHub Automation Agents
 
-Date: 2026-03-15
+Date: 2026-05-15
 Project: Forsetti Framework - Windows
-Status: discussion automation baseline
+Status: discussion automation baseline, documentation sources refreshed
 
 ## Purpose
 
 This document describes the GitHub automation added to this repository for discussion responses, topic seeding, and moderation.
+
+Repository-tracked documents are the automation source set. The public Wiki is the reader-facing companion to those tracked docs; keep both aligned so discussion responses grounded in repository material remain accurate.
 
 ## Discussion Response Agents
 
@@ -26,13 +28,14 @@ Boundary rules:
 - support responses prefer onboarding, build, test, workflow, and troubleshooting surfaces
 - technical responses prefer source code, tests, scripts, manifests, and implementation contracts
 - framework/governance responses prefer policy, runtime-boundary, dependency-flow, and guardrail surfaces
+- answers should cite current documents, public headers, scripts, or tests rather than stale workflow names or planned targets
 
 ## Discussion Topic Seeder Agent
 
 The discussion-topic-seeder workflow scans repository truth on a schedule and opens category-level GitHub Discussions topics when equivalent seeded topics do not already exist.
 
 It works by:
-- reading repository-driven topic sources such as `README.md`, `wiki.md`, and `docs/governance/github_automation_agents.md`
+- reading configured repository-tracked topic sources such as `README.md`, `wiki.md`, and `docs/governance/github_automation_agents.md`
 - deriving candidate topics from repo headings and governance sections
 - classifying each candidate into the technical, support, or framework/governance family using the same repo-grounded routing logic as the response agents
 - selecting at most one new topic per family and at most three total topics per run
