@@ -124,5 +124,15 @@
       "BaseDestinationCatalog",
       "SlotCatalog"
     ]
+  },
+  "documentation": {
+    "readme": "README.md",
+    "changelog": "CHANGELOG.md",
+    "wikiIndex": "wiki.md",
+    "publicWiki": "https://github.com/flynn33/Forsetti-Framework-Windows/wiki",
+    "governanceDocs": [
+      "docs/governance/github_automation_agents.md",
+      "docs/governance/discussion_moderation_policy.md"
+    ]
   }
 }

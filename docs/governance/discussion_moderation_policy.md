@@ -1,12 +1,14 @@
 # Discussion Moderation Policy
 
-Date: 2026-03-15
+Date: 2026-05-15
 Project: Forsetti Framework - Windows
 Status: active discussion moderation baseline
 
 ## Purpose
 
 This policy defines the repository-side moderation rules for GitHub Discussions. It exists so automated moderation can remove clearly disallowed content without inventing standards outside the repository.
+
+The moderation policy applies to discussions about repository code, documentation, Wiki pages, governance, and support topics.
 
 ## Authority Sources
 

@@ -1,29 +1,59 @@
-# Forsetti Framework - Windows Wiki
+# Forsetti Framework - Windows Wiki Index
 
-## Getting Started
+This file is the repository-tracked companion to the public GitHub Wiki:
 
-Forsetti Framework - Windows is the Windows 11 implementation of the framework's modular runtime model. The fastest onboarding path is to install the required Visual Studio workload, configure `vcpkg`, and build through the checked-in CMake presets.
+https://github.com/flynn33/Forsetti-Framework-Windows/wiki
 
-## Core Runtime
+The Wiki is the long-form documentation surface for architecture, runtime behavior, module authoring, validation, and governance. Repository documents should remain concise and point readers to the Wiki for deep explanations and diagrams.
 
-`ForsettiCore` is the framework's pure C++20 authority layer. It owns module models, runtime lifecycle orchestration, manifest loading, compatibility checking, event routing, service-container behavior, and UI surface models without taking platform dependencies.
+## Wiki Page Set
 
-## Platform Layer
+| Page | Purpose |
+|---|---|
+| `Home` | Orientation, status, page map, and high-level diagrams |
+| `Architecture` | Layering rules, component graph, dependency boundaries, and repository layout |
+| `Runtime-Lifecycle` | Boot, discovery, activation, deactivation, restore, and entitlement reconciliation |
+| `Module-System` | Module types, manifests, registry factories, compatibility, and examples |
+| `Capabilities-and-Security` | Capability policy, scoped service access, messaging rules, and reserved namespaces |
+| `UI-Surface-Model` | UI/app activation, toolbar items, view injections, overlays, and theme mask policy |
+| `Platform-Services` | WinHTTP, Registry, DPAPI, local file export, telemetry, and service registration |
+| `Build-and-Testing` | Prerequisites, CMake presets, CTest, guardrail scripts, and validation evidence |
+| `API-Reference` | Public headers, interfaces, value types, enums, and platform services |
+| `Coding-Policy` | Engineering rules, dependency invariants, style expectations, and verification policy |
+| `Governance-and-Operations` | Repository automation, discussion agents, moderation, PR workflow, and evidence policy |
+| `Roadmap-and-Risks` | Planned host template, remote workflow restoration, dependency pinning, and future hardening |
 
-`ForsettiPlatform` provides Windows-specific service implementations. It sits above Core and should remain a realization layer for Windows SDK behavior rather than a place where core runtime truth is redefined.
+## Documentation Architecture
 
-## Example Modules
+```mermaid
+flowchart LR
+    Repo["Repository docs\nREADME, CHANGELOG, CONTRIBUTING"]
+    Wiki["GitHub Wiki\nlong-form guides"]
+    Governance["Governance docs\npolicy and automation"]
+    Evidence["Remediation evidence\n.forsetti/remediation"]
+    Source["Source and tests\ninclude, src, tests, Scripts"]
 
-`ForsettiModulesExample` demonstrates how modules plug into the runtime, register themselves, and interact with the framework contracts. It is a reference surface for examples and validation, not the source of core framework rules.
+    Source --> Repo
+    Source --> Wiki
+    Governance --> Wiki
+    Evidence --> Wiki
+    Repo --> Wiki
+```
 
-## Host Template Status
+## Update Rules
 
-`ForsettiHostTemplate` is a planned WinUI 3 host application layer. Current repository targets build the core runtime, Windows service adapters, example modules, and native tests; host template instructions should stay marked as planned until a target is added.
+- Update `README.md` when onboarding, build, validation, architecture, or release status changes.
+- Update `CHANGELOG.md` for notable runtime, validation, governance, or documentation changes.
+- Update Wiki pages when behavior needs explanation, diagrams, or examples beyond the README.
+- Update `docs/governance` when repository automation, discussion routing, moderation, or owner-facing policy changes.
+- Keep `forsetti-instructions.json` and `agentic-coding-policy.json` aligned with the source and public docs.
 
-## Validation And Guardrails
+## Current Status
 
-The repo ships guardrail scripts under `Scripts/` for architecture flow, dependency boundaries, manifest validation, pull request compatibility, and script regression coverage. `Scripts/verify-forsetti-guardrails.ps1` is the local wrapper for build, test, and guardrail evidence. The remote pull request workflow is limited to repository marker scanning during the remediation sequence, so local guardrail output remains the build and test source of truth.
+The remediation sequence is complete through final acceptance. The canonical validation path is:
 
-## Framework Governance
+```powershell
+.\Scripts\verify-forsetti-guardrails.ps1
+```
 
-This repository carries both implementation code and governance surfaces. `agentic-coding-policy.json`, `forsetti-instructions.json`, workflow guardrails, and the moderation/automation docs together define how contributors and automation should preserve the framework's modular-runtime baseline.
+The wrapper configures, builds, runs CTest, checks architecture and dependency boundaries, validates manifests, runs pull request compatibility checks, and runs script regression tests.

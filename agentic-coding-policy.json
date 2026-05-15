@@ -53,7 +53,7 @@
     {
       "id": "R009",
       "name": "CI Build Parity",
-      "description": "During the remediation sequence, remote pull request enforcement is limited to repository marker scanning while local verification uses Scripts/verify-forsetti-guardrails.ps1 for build, test, and guardrail evidence. Restore full remote parity when the aligned workflow set is added.",
+      "description": "Current remote pull request enforcement is limited to repository marker scanning while local verification uses Scripts/verify-forsetti-guardrails.ps1 for build, test, and guardrail evidence. Restore full remote build/test parity when the aligned workflow set is added.",
       "severity": "error"
     }
   ],

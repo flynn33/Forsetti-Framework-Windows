@@ -1,43 +1,116 @@
-# Forsetti Framework — Windows
+# Forsetti Framework - Windows
 
-A modular runtime framework for Windows 11, built with C++20 and Windows SDK service adapters. The WinUI 3 host template is planned and is not yet a repository target.
+Forsetti Framework - Windows is a proprietary modular runtime framework for Windows 11 applications. It is built with C++20, MSVC, CMake, vcpkg, and native Windows SDK service adapters.
 
-## Overview
+The framework centers on a compatibility-governed module model: modules declare identity, platform support, capabilities, entitlement requirements, and optional UI contributions. The runtime validates those declarations before activation, scopes module access to approved services, and keeps UI surface state under framework control.
 
-Forsetti is a proprietary modular runtime framework that provides:
+The WinUI 3 host application template is planned and is not yet a repository target. Current repository targets build the core runtime, Windows platform adapters, example modules, and native test suites.
 
-- **Module System** — Manifest-driven module discovery, compatibility checking, and lifecycle management
-- **Event Bus** — Pub/sub communication between modules and the framework
-- **Service Container** — Type-erased dependency injection
-- **UI Surface Management** — Toolbar items, view injections, overlay routing
-- **Entitlement Gating** — IAP-based module unlocking with runtime reconciliation
+## What Forsetti Provides
 
-## Runtime Semantics
+| Area | Repository Contract |
+|---|---|
+| Module lifecycle | Manifest discovery, compatibility validation, entitlement checks, activation, deactivation, and restore diagnostics |
+| Service modules | Multiple service modules can run concurrently |
+| UI/app modules | UI and app modules share one active surface slot |
+| Capability governance | Runtime service access and UI contribution features are scoped to declared capabilities |
+| Module communication | Module-to-module messages are framework-mediated and source identity is assigned by scoped context |
+| UI composition | Toolbar items, view injections, and overlay schemas are contributed by the active UI/app module |
+| Platform services | WinHTTP networking, Registry storage, DPAPI secure storage, constrained local file export, and no-op telemetry |
+| Guardrails | Local scripts verify build, tests, dependency boundaries, manifests, compatibility checks, and script regressions |
 
-Service modules may run concurrently. UI and app modules share a single active surface slot: activating a UI/app module replaces the current active UI/app module, stops the previous one, removes its surface contributions, and persists only the selected UI/app module.
+## Architecture At A Glance
 
-UI/app modules must declare the capabilities used by their UI contributions. Toolbar items require `toolbar_items`, view injections require `view_injection`, overlay schemas and toolbar overlay actions require `routing_overlay`, and toolbar event actions require `event_publishing`. Theme masks remain reserved for framework-owned presentation policy.
+```mermaid
+flowchart TB
+    Host["ForsettiHostTemplate\nplanned WinUI 3 host layer"]
+    Platform["ForsettiPlatform\nWindows SDK service adapters"]
+    Core["ForsettiCore\npure C++20 runtime"]
+    Examples["ForsettiModulesExample\nreference modules"]
+    Tests["Native test suites\nCore, Platform, Architecture"]
 
-## Architecture
+    Host --> Platform
+    Host --> Core
+    Platform --> Core
+    Examples --> Core
+    Tests --> Core
+    Tests --> Platform
 
+    classDef planned fill:#fff7e6,stroke:#b7791f,color:#3d2b12;
+    classDef runtime fill:#eef6ff,stroke:#2b6cb0,color:#102a43;
+    classDef reference fill:#f0fff4,stroke:#2f855a,color:#123524;
+    class Host planned;
+    class Platform,Core runtime;
+    class Examples,Tests reference;
 ```
-ForsettiCore          (Pure C++20, no platform deps)
-ForsettiPlatform      (Windows SDK service implementations) -> Core
-ForsettiModulesExample (Example modules)                    -> Core
-ForsettiHostTemplate  (planned WinUI 3 host template)       -> Core + Platform
+
+The hard dependency rule is one-way only:
+
+- `ForsettiCore` depends on nothing in the repository.
+- `ForsettiPlatform` depends on `ForsettiCore`.
+- `ForsettiModulesExample` depends on `ForsettiCore`.
+- The planned `ForsettiHostTemplate` will depend on `ForsettiCore` and `ForsettiPlatform`.
+- Reverse and lateral includes are blocked by tests and scripts.
+
+## Runtime Flow
+
+```mermaid
+sequenceDiagram
+    participant Host as Host application
+    participant Runtime as ForsettiRuntime
+    participant Manager as ModuleManager
+    participant Loader as ManifestLoader
+    participant Registry as ModuleRegistry
+    participant Compat as CompatibilityChecker
+    participant Module as Module
+    participant Surface as UISurfaceManager
+    participant Store as ActivationStore
+
+    Host->>Runtime: boot()
+    Runtime->>Manager: discoverManifests(path)
+    Manager->>Loader: loadManifests(path)
+    Loader-->>Manager: ModuleManifest list
+    Runtime->>Manager: restorePersistedActivation()
+    Manager->>Compat: checkCompatibility(manifest)
+    Manager->>Registry: resolve entryPoint factory
+    Registry-->>Manager: module instance
+    Manager->>Manager: validate descriptor, type, version, manifest
+    Manager->>Module: start(scoped context)
+    alt UI or app module
+        Manager->>Surface: add sanitized contributions
+        Manager->>Surface: rebuild surface state
+    end
+    Manager->>Store: save activation state
 ```
 
-`ForsettiHostTemplate` is a planned layer. Current CMake targets build `ForsettiCore`, `ForsettiPlatform`, `ForsettiModulesExample`, and the native test suites.
+Activation fails before `start()` when compatibility, entitlement, capability, or factory identity checks fail. UI/app activation preserves the single active surface slot and cleans up the previous active UI/app module.
 
-## Building
+## Repository Layout
+
+| Path | Purpose |
+|---|---|
+| `include/ForsettiCore` | Public runtime, module, manifest, event, service, capability, and UI surface contracts |
+| `src/ForsettiCore` | Core runtime implementation with no platform dependencies |
+| `include/ForsettiPlatform` | Public Windows platform adapter contracts |
+| `src/ForsettiPlatform` | Windows SDK implementations for networking, storage, secure storage, file export, and telemetry |
+| `src/ForsettiModulesExample` | Reference service/UI modules and manifest resources |
+| `tests` | Native CppUnitTest suites surfaced through CTest |
+| `Scripts` | Local guardrail, compatibility, manifest, dependency, and discussion automation scripts |
+| `.github` | Pull request template, label/release metadata, discussion automation config, and remote marker workflow |
+| `docs/governance` | Repository-grounded governance and discussion automation documents |
+| `.forsetti/remediation` | Phase evidence and acceptance reports for the completed remediation sequence |
+
+## Build And Test
 
 ### Prerequisites
 
-- Visual Studio 2022 with C++ Desktop Development workload
-- CMake 3.28+
-- vcpkg
+- Windows 11
+- Visual Studio 2022 with the Desktop development with C++ workload
+- CMake 3.28 or newer
+- vcpkg with `VCPKG_ROOT` set
+- PowerShell 7 or Windows PowerShell
 
-### Build
+### Configure, Build, And Test
 
 ```powershell
 cmake --preset debug
@@ -45,26 +118,91 @@ cmake --build --preset debug
 ctest --preset debug --output-on-failure
 ```
 
-### Guardrails
+The repository currently defines `debug` and `release` CMake presets. The package-level `windows-msvc-debug` name is not a repository preset.
 
-Run the local guardrail wrapper before opening a pull request:
+### Full Local Guardrail Wrapper
+
+Run this before opening a pull request:
 
 ```powershell
 .\Scripts\verify-forsetti-guardrails.ps1
 ```
 
-The wrapper configures, builds, runs CTest, checks architecture and dependency boundaries, validates manifests, runs pull request compatibility checks, and exercises script regression tests. The remote pull request workflow is intentionally limited to repository marker scanning while this remediation sequence is active; build and test evidence is recorded from local guardrail runs.
+The wrapper performs:
 
-## Project Guides
+1. CMake configure with the `debug` preset.
+2. CMake build with the `debug` preset.
+3. CTest execution.
+4. Architecture checks.
+5. Dependency checks.
+6. Manifest validation.
+7. Pull request compatibility checks.
+8. Script regression tests.
 
-- `wiki.md` - conceptual walkthroughs for the core runtime, platform layer, examples, and governance
-- `CONTRIBUTING.md` - contribution and local verification expectations
-- `docs/governance/github_automation_agents.md` - repo discussion automation behavior and boundaries
+## Module Manifest Baseline
+
+Manifests live under `ForsettiManifests` directories and use JSON with exact platform/capability casing:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "moduleID": "com.forsetti.module.example-service",
+  "displayName": "Example Service",
+  "moduleVersion": { "major": 0, "minor": 1, "patch": 0, "prerelease": null },
+  "moduleType": "service",
+  "supportedPlatforms": ["Windows"],
+  "minForsettiVersion": { "major": 0, "minor": 1, "patch": 0, "prerelease": null },
+  "maxForsettiVersion": null,
+  "capabilitiesRequested": ["storage", "telemetry"],
+  "iapProductID": null,
+  "entryPoint": "ExampleServiceModule"
+}
+```
+
+Supported module types are `service`, `ui`, and `app`. Supported capabilities are:
+
+- `networking`
+- `storage`
+- `secure_storage`
+- `file_export`
+- `telemetry`
+- `routing_overlay`
+- `toolbar_items`
+- `view_injection`
+- `ui_theme_mask`
+- `event_publishing`
+
+`ui_theme_mask` remains reserved for framework-owned presentation policy.
+
+## Documentation Map
+
+Repository documents:
+
+- `README.md` - primary repository entry point.
+- `CHANGELOG.md` - release and notable change history.
+- `CONTRIBUTING.md` - contributor workflow and verification expectations.
+- `wiki.md` - tracked index for the public GitHub Wiki.
+- `docs/governance/github_automation_agents.md` - discussion automation design.
+- `docs/governance/discussion_moderation_policy.md` - discussion moderation policy.
+- `agentic-coding-policy.json` - machine-readable coding policy and invariants.
+- `forsetti-instructions.json` - machine-readable framework architecture and API summary.
+
+Public Wiki:
+
+- [Forsetti Framework - Windows Wiki](https://github.com/flynn33/Forsetti-Framework-Windows/wiki)
+
+The Wiki contains detailed pages for architecture, runtime lifecycle, module manifests, capabilities, UI surface behavior, platform services, build/test guardrails, governance, API reference, and roadmap decisions.
+
+## Current Acceptance Status
+
+The remediation sequence has completed through final acceptance. Local Windows/MSVC validation passed with the `debug` preset, all three CTest suites passed, repository guardrails passed, and all phase evidence files are present under `.forsetti/remediation`.
+
+Remaining owner decisions are tracked in the final acceptance report, including remote build/test parity restoration, vcpkg baseline pinning, planned host-template implementation, theme policy exposure, and general module-originated event publishing.
 
 ## Patent Notice
 
 The architecture and design of Forsetti are the subject of a pending U.S. patent application:
-**Compatibility-Governed, Entitlement-Aware Modular Runtime Framework for Native Application Modules** — U.S. Application No. 63/999,606, filed March 8, 2026. Patent Pending.
+**Compatibility-Governed, Entitlement-Aware Modular Runtime Framework for Native Application Modules** - U.S. Application No. 63/999,606, filed March 8, 2026. Patent Pending.
 
 ## License
 

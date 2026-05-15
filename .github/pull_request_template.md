@@ -32,3 +32,4 @@
 - [ ] Code compiles without warnings (`/W4 /WX`)
 - [ ] License headers present on new files
 - [ ] No secrets or credentials in code
+- [ ] Documentation and changelog updated when behavior, validation, governance, or public status changes
