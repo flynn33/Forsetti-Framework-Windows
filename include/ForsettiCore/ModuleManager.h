@@ -12,6 +12,9 @@
 #include "ForsettiCore/CapabilityPolicy.h"
 #include "ForsettiCore/CompatibilityChecker.h"
 #include "ForsettiCore/UISurfaceManager.h"
+#include "ForsettiCore/ModuleRegistration.h"
+#include "ForsettiCore/ModuleRequirementValidator.h"
+#include "ForsettiCore/DefaultModuleRoles.h"
 #include <string>
 #include <set>
 #include <optional>
@@ -37,7 +40,11 @@ enum class ModuleManagerError {
     ModuleTypeMismatch,
     ModuleVersionMismatch,
     ModuleManifestMismatch,
-    CapabilityDenied
+    CapabilityDenied,
+    RegistrationMissing,
+    RegistrationUnconfirmed,
+    RegistrationMismatch,
+    RequirementValidationFailed
 };
 
 class ModuleManagerException final : public std::runtime_error {
@@ -80,7 +87,9 @@ public:
         std::shared_ptr<IEntitlementProvider> entitlementProvider,
         std::shared_ptr<IActivationStore> store,
         std::shared_ptr<UISurfaceManager> surfaceManager,
-        std::shared_ptr<ForsettiContext> context
+        std::shared_ptr<ForsettiContext> context,
+        std::shared_ptr<ModuleRegistrationService> registrationService = nullptr,
+        std::shared_ptr<ModuleRequirementValidator> requirementValidator = nullptr
     );
 
     // Discovery
@@ -98,6 +107,7 @@ public:
     [[nodiscard]] const std::set<std::string>& enabledUIModuleIDs() const;
     [[nodiscard]] const std::optional<std::string>& activeUIModuleID() const;
     [[nodiscard]] const std::unordered_map<std::string, ModuleManifest>& manifestsByID() const;
+    [[nodiscard]] std::vector<ModuleRegistrationRecord> registeredModules() const;
     [[nodiscard]] bool isModuleActive(const std::string& moduleID) const;
     [[nodiscard]] ActivationRestoreResult lastRestoreResult() const;
 
@@ -105,6 +115,11 @@ private:
     void activateModuleLocked(const std::string& moduleID, bool persistAfterActivation);
 
     void validateResolvedModule(const IForsettiModule& module, const ModuleManifest& manifest) const;
+    void validateConfirmedRegistration(const ModuleManifest& manifest) const;
+    void validateRuntimeRequirements(
+        const ModuleManifest& manifest,
+        const ForsettiContext& moduleContext) const;
+    void validateRequiredDefaultRoles(const ModuleManifest& manifest) const;
     [[nodiscard]] std::shared_ptr<ForsettiContext> makeModuleContext(
         const ModuleManifest& manifest) const;
 
@@ -118,12 +133,9 @@ private:
     // State persistence
     void persistState();
 
-    // Sanitisation — strips themeMask (reserved for framework use)
+    // Surface contribution normalization after ownership validation
     [[nodiscard]] UIContributions sanitizedUIContributions(const UIContributions& original) const;
-    void validateUIContributions(
-        const std::string& moduleID,
-        const UIContributions& contributions,
-        const std::vector<Capability>& grantedCapabilities) const;
+    void validateUIContributions(const ModuleManifest& manifest, const UIContributions& contributions) const;
 
     // Dependencies
     ModuleRegistry registry_;
@@ -132,6 +144,8 @@ private:
     std::shared_ptr<IActivationStore> store_;
     std::shared_ptr<UISurfaceManager> surfaceManager_;
     std::shared_ptr<ForsettiContext> context_;
+    std::shared_ptr<ModuleRegistrationService> registrationService_;
+    std::shared_ptr<ModuleRequirementValidator> requirementValidator_;
 
     // Module state
     std::unordered_map<std::string, ModuleManifest> manifestsByID_;

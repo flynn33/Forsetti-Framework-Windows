@@ -3,7 +3,11 @@
 
 add_library(ForsettiCore STATIC
     SemVer.cpp
+    DefaultModuleRoles.cpp
+    ModuleRequirements.cpp
     ModuleModels.cpp
+    ModuleRegistration.cpp
+    ModuleRequirementValidator.cpp
     UIModels.cpp
     ForsettiLogger.cpp
     ForsettiEventBus.cpp
@@ -29,5 +33,5 @@ target_link_libraries(ForsettiCore PUBLIC
     nlohmann_json::nlohmann_json
 )
 
-# ForsettiCore must NOT link to ForsettiPlatform, ForsettiHostTemplate, or ForsettiModulesExample
+# ForsettiCore must NOT link to ForsettiPlatform, ForsettiHostTemplate, or example modules
 # This is enforced by the architecture tests and CI guardrails

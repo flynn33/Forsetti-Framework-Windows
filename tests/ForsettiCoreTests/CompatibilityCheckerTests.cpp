@@ -160,7 +160,7 @@ public:
         Assert::IsTrue(report.isCompatible());
     }
 
-    TEST_METHOD(UIThemeMask_ReservedWarning)
+    TEST_METHOD(UIThemeMask_AllowedWhenPolicyAllows)
     {
         auto policy = std::make_shared<AllowAllCapabilityPolicy>();
         CompatibilityChecker checker(ForsettiVersion::current, policy);
@@ -170,15 +170,8 @@ public:
 
         auto report = checker.checkCompatibility(manifest);
 
-        // Should have a warning about UIThemeMask being reserved
-        bool hasWarning = false;
-        for (const auto& issue : report.issues) {
-            if (issue.severity == CompatibilitySeverity::Warning &&
-                issue.code == CompatibilityIssueCode::DeniedCapability) {
-                hasWarning = true;
-            }
-        }
-        Assert::IsTrue(hasWarning);
+        Assert::IsTrue(report.isCompatible());
+        Assert::AreEqual(size_t(0), report.issues.size());
     }
 
     TEST_METHOD(ReportModuleID_MatchesManifest)

@@ -1,0 +1,65 @@
+{
+  "phase": "02",
+  "name": "manifest-template-and-requirements",
+  "timestampUtc": "2026-06-19T12:40:44Z",
+  "status": "completed-with-native-toolchain-blocked",
+  "changes": [
+    "Added ModuleRequirements public Core model and implementation.",
+    "Extended ModuleManifest with manifestTemplateVersion, defaultModuleRole, and runtimeRequirements.",
+    "Added manifest 1.1 decoding while preserving 1.0 default decoding.",
+    "Extended the capability vocabulary and Core service interfaces.",
+    "Tightened capability-scoped service resolution to explicit service mappings.",
+    "Added manifest semantic validation for schema/template compatibility, duplicate capabilities, duplicate requirement/UI IDs, role/type rules, UI contract rules, I/O capability mapping, and data isolation consistency.",
+    "Corrected SemVer construction, parsing, JSON decoding, and prerelease precedence.",
+    "Migrated example module manifests and bundled example manifest providers to schema 1.1.",
+    "Updated README and framework policy manifest documentation."
+  ],
+  "testsAdded": [
+    "Manifest 1.0 runtime requirement defaults.",
+    "Manifest 1.1 runtime requirement parsing.",
+    "Manifest 1.1 UI contract parsing.",
+    "Requirement enum round trips and unknown rejection.",
+    "Schema/template mismatch rejection.",
+    "Missing 1.1 runtime requirements rejection.",
+    "Duplicate capability, I/O requirement, and UI ID rejection.",
+    "Service UI contract rejection and UI missing-contract rejection.",
+    "I/O capability mismatch rejection.",
+    "Default-role/type mismatch rejection.",
+    "Shared data-isolation consistency rejection.",
+    "Semantic Versioning prerelease precedence and invalid-form rejection."
+  ],
+  "validation": [
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "rg legacy public-surface names excluding baseline evidence",
+      "result": "passed with no matches"
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "result": "blocked: ctest not installed"
+    },
+    {
+      "command": "pwsh -NoProfile -File ./Scripts/check-manifests.ps1",
+      "result": "blocked: pwsh not installed"
+    }
+  ],
+  "knownLimitations": [
+    "Native Windows/MSVC build, CTest execution, and PowerShell guardrail execution still require a Windows toolchain environment.",
+    "Registration, activation-time requirement enforcement, data wrappers, roles, and UI contribution contract enforcement continue in later phases."
+  ]
+}

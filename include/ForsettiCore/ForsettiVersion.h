@@ -10,7 +10,7 @@ namespace Forsetti {
 
 /// Current framework version. Mirrors ForsettiVersion.swift.
 struct ForsettiVersion final {
-    static inline const SemVer current{0, 1, 0};
+    static inline const SemVer current{0, 2, 0};
 };
 
 } // namespace Forsetti

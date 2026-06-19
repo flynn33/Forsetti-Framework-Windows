@@ -20,7 +20,7 @@ The Wiki is the long-form documentation surface for architecture, runtime behavi
 | `Build-and-Testing` | Prerequisites, CMake presets, CTest, guardrail scripts, and validation evidence |
 | `API-Reference` | Public headers, interfaces, value types, enums, and platform services |
 | `Coding-Policy` | Engineering rules, dependency invariants, style expectations, and verification policy |
-| `Governance-and-Operations` | Repository automation, discussion agents, moderation, PR workflow, and evidence policy |
+| `Governance-and-Operations` | Repository automation, discussion responders, moderation, PR workflow, and evidence policy |
 | `Roadmap-and-Risks` | Planned host template, remote workflow restoration, dependency pinning, and future hardening |
 
 ## Documentation Architecture
@@ -30,7 +30,7 @@ flowchart LR
     Repo["Repository docs\nREADME, CHANGELOG, CONTRIBUTING"]
     Wiki["GitHub Wiki\nlong-form guides"]
     Governance["Governance docs\npolicy and automation"]
-    Evidence["Remediation evidence\n.forsetti/remediation"]
+    Evidence["Alignment evidence\n.forsetti/alignment"]
     Source["Source and tests\ninclude, src, tests, Scripts"]
 
     Source --> Repo
@@ -46,11 +46,11 @@ flowchart LR
 - Update `CHANGELOG.md` for notable runtime, validation, governance, or documentation changes.
 - Update Wiki pages when behavior needs explanation, diagrams, or examples beyond the README.
 - Update `docs/governance` when repository automation, discussion routing, moderation, or owner-facing policy changes.
-- Keep `forsetti-instructions.json` and `agentic-coding-policy.json` aligned with the source and public docs.
+- Keep `framework-policy.json` and `implementation-policy.json` aligned with the source and public docs.
 
 ## Current Status
 
-The remediation sequence is complete through final acceptance. The canonical validation path is:
+Runtime-boundary alignment evidence is tracked under `.forsetti/alignment`. The canonical validation path is:
 
 ```powershell
 .\Scripts\verify-forsetti-guardrails.ps1

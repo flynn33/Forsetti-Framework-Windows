@@ -1,0 +1,50 @@
+{
+  "phase": "05",
+  "name": "narrow-module-context-and-default-role-orchestration",
+  "timestampUtc": "2026-06-19T13:34:00Z",
+  "status": "completed-with-native-toolchain-blocked",
+  "changes": [
+    "Added IForsettiModuleContext as the module lifecycle surface.",
+    "Migrated IForsettiModule start and stop signatures to IForsettiModuleContext.",
+    "Kept ForsettiContext as the framework-owned concrete context while exposing moduleID, services, logger, event publishing, messaging, and subscriptions through the narrow interface.",
+    "Added module-originated publishEvent with event_publishing capability enforcement and reserved namespace rejection.",
+    "Sanitized module-supplied payload fields before framework-owned source and target metadata is applied.",
+    "Added DefaultModuleCatalog and DefaultModuleOrchestrator for resolving required default roles from confirmed registration records.",
+    "Integrated required default role validation into ModuleManager activation."
+  ],
+  "testsAdded": [
+    "Module-scoped context exposes module ID as a string through the narrow interface.",
+    "Module-originated event publication requires event_publishing capability.",
+    "Module messaging strips caller-supplied framework-owned payload fields.",
+    "Activation fails when required default role providers cannot be resolved."
+  ],
+  "validation": [
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "rg old lifecycle and optional moduleID patterns",
+      "result": "passed: no matches"
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "result": "blocked: ctest not installed"
+    }
+  ],
+  "knownLimitations": [
+    "Native compile and test execution still require Windows/MSVC, CMake, CTest, vcpkg, and PowerShell."
+  ]
+}

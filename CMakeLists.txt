@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.28)
 project(ForsettiFramework
-    VERSION 0.1.0
+    VERSION 0.2.0
     LANGUAGES CXX
     DESCRIPTION "Forsetti Framework for Windows — Modular Runtime Framework"
 )
@@ -12,6 +12,9 @@ project(ForsettiFramework
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+option(FORSETTI_BUILD_HOST_TEMPLATE "Build the ForsettiHostTemplate target." ON)
+option(FORSETTI_BUILD_SAMPLES "Build downstream Forsetti samples." ON)
 
 # MSVC warnings as errors
 if(MSVC)
@@ -21,14 +24,19 @@ endif()
 # Find nlohmann/json via vcpkg
 find_package(nlohmann_json CONFIG REQUIRED)
 
-# Include directories for public headers
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
 # Library targets
 add_subdirectory(src/ForsettiCore)
 add_subdirectory(src/ForsettiPlatform)
-add_subdirectory(src/ForsettiModulesExample)
-# add_subdirectory(src/ForsettiHostTemplate)  # Phase 4: WinUI 3
+if(FORSETTI_BUILD_HOST_TEMPLATE)
+    add_subdirectory(src/ForsettiHostTemplate)
+endif()
+add_subdirectory(src/ForsettiExampleServiceModule)
+add_subdirectory(src/ForsettiExampleUIModule)
+add_subdirectory(src/ForsettiExampleAppModule)
+
+if(FORSETTI_BUILD_SAMPLES AND FORSETTI_BUILD_HOST_TEMPLATE)
+    add_subdirectory(samples/ForsettiDemo)
+endif()
 
 # Tests
 if(BUILD_TESTING)

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.1",
+  "manifestTemplateVersion": "1.1",
+  "moduleID": "com.forsetti.template.ui",
+  "displayName": "Template UI Module",
+  "moduleVersion": {"major": 0, "minor": 1, "patch": 0, "prerelease": null},
+  "moduleType": "ui",
+  "supportedPlatforms": ["Windows"],
+  "minForsettiVersion": {"major": 0, "minor": 2, "patch": 0, "prerelease": null},
+  "maxForsettiVersion": null,
+  "capabilitiesRequested": ["toolbar_items", "view_injection", "routing_overlay"],
+  "iapProductID": null,
+  "entryPoint": "TemplateUIModule",
+  "defaultModuleRole": "ui",
+  "runtimeRequirements": {
+    "io": [],
+    "ui": {
+      "controlSchemeID": "template-ui.controls",
+      "layoutID": "template-ui.layout",
+      "themeIDs": [],
+      "viewIDs": ["TemplateHomeView", "TemplateOverlayView"],
+      "slotIDs": ["home", "overlay"],
+      "toolbarItemIDs": ["template-toolbar"],
+      "routeIDs": ["template-overlay-route"],
+      "pointerIDs": ["template-pointer"]
+    },
+    "dataIsolation": {
+      "mode": "private_to_module",
+      "ownedStoreIDs": [],
+      "requiredDefaultRoles": []
+    }
+  }
+}

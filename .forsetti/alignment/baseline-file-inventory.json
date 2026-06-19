@@ -1,0 +1,824 @@
+{
+  "generatedAt": "2026-06-19T12:22:31.872364+00:00",
+  "files": [
+    {
+      "path": ".forsetti/remediation/local-mcp-inventory.json",
+      "bytes": 4841,
+      "sha256": "b4f0cd8d1836558986757fe4245b1a938974ce258c1346e56881151236966e8b",
+      "text": true,
+      "lineCount": 132
+    },
+    {
+      "path": ".forsetti/remediation/local-subagent-inventory.json",
+      "bytes": 2688,
+      "sha256": "92e6a15b5af69e192c93a413f0c2144b0741b0d51a6e3195e43916f3742abdc5",
+      "text": true,
+      "lineCount": 75
+    },
+    {
+      "path": ".forsetti/remediation/local-tool-inventory.md",
+      "bytes": 5534,
+      "sha256": "308d2f30eca4c91aaaa7a1b88e4e407a6c7aa5e8452c93205f501b8913f5e6d9",
+      "text": true,
+      "lineCount": 112
+    },
+    {
+      "path": ".forsetti/remediation/mcp-subagent-use-log.md",
+      "bytes": 686,
+      "sha256": "12e0f342b571fe4359640e404b81afad22f794746acf11b722548751912cbbe4",
+      "text": true,
+      "lineCount": 15
+    },
+    {
+      "path": ".forsetti/remediation/phase-00-evidence.json",
+      "bytes": 6044,
+      "sha256": "fc8dd2b9893ffb2b3845e9a69e4a9c30746095a5c951e1611f65c3f7669a2a39",
+      "text": true,
+      "lineCount": 144
+    },
+    {
+      "path": ".forsetti/remediation/phase-00-report.md",
+      "bytes": 7016,
+      "sha256": "1c7d2b196764406be3f657bec45822a5ca641ba773f330cde9b53e647cf3099a",
+      "text": true,
+      "lineCount": 82
+    },
+    {
+      "path": ".forsetti/remediation/phase-00b-evidence.json",
+      "bytes": 3464,
+      "sha256": "9a1d438857145a99d80bc42c8e5d143887a0c32cd2dc0b748224502a4519475d",
+      "text": true,
+      "lineCount": 87
+    },
+    {
+      "path": ".forsetti/remediation/phase-00b-report.md",
+      "bytes": 3974,
+      "sha256": "e22e346a80adcb34e279a9c4e9922497fbfd2158af9b87285f0cc122598078d9",
+      "text": true,
+      "lineCount": 71
+    },
+    {
+      "path": ".forsetti/remediation/phase-01-evidence.json",
+      "bytes": 4088,
+      "sha256": "6ca3fa0b22e5d6df1522ff71dfa500157a3ce2042e04fbc410c0f25f55f3e715",
+      "text": true,
+      "lineCount": 111
+    },
+    {
+      "path": ".forsetti/remediation/phase-01-report.md",
+      "bytes": 5118,
+      "sha256": "1a17c4e1e5a3ab7ee86b25cdd3e4d09964eef07a120e582a89ad50fa1033eb3a",
+      "text": true,
+      "lineCount": 82
+    },
+    {
+      "path": ".forsetti/remediation/phase-02-evidence.json",
+      "bytes": 4363,
+      "sha256": "8a3786cbd7aba48f7ff23e9064f3e6312973a26ff80d8ae8ef54b64dcfa27714",
+      "text": true,
+      "lineCount": 110
+    },
+    {
+      "path": ".forsetti/remediation/phase-02-report.md",
+      "bytes": 5282,
+      "sha256": "0030648ec6a5089b92a5845b2f05ec5b53515cad5c4e6ed086c422445f6b3f9e",
+      "text": true,
+      "lineCount": 83
+    },
+    {
+      "path": ".forsetti/remediation/phase-03-evidence.json",
+      "bytes": 4910,
+      "sha256": "c9dd3ad5df47fa2c818a35fa9a083d8c1897038bbcecbd1410b723a96f2145b2",
+      "text": true,
+      "lineCount": 120
+    },
+    {
+      "path": ".forsetti/remediation/phase-03-report.md",
+      "bytes": 5746,
+      "sha256": "0e27a8ce018a4417f1fecfebac787607a22c4679367135f6b20dd84d2444d652",
+      "text": true,
+      "lineCount": 87
+    },
+    {
+      "path": ".forsetti/remediation/phase-04-evidence.json",
+      "bytes": 4240,
+      "sha256": "2739bb75921e1d59c84d6e82f697a3089e7f7d65c0a9326f34cddb29a535d945",
+      "text": true,
+      "lineCount": 108
+    },
+    {
+      "path": ".forsetti/remediation/phase-04-report.md",
+      "bytes": 5732,
+      "sha256": "287da9dc3829949e674c458aea3445d221a3225a4038eba33c6381445b3da759",
+      "text": true,
+      "lineCount": 79
+    },
+    {
+      "path": ".forsetti/remediation/phase-05-evidence.json",
+      "bytes": 4546,
+      "sha256": "5613f71be99a21eac7cb525a5f476617f02c1a095aa81e8c81839d3aa6d8f743",
+      "text": true,
+      "lineCount": 110
+    },
+    {
+      "path": ".forsetti/remediation/phase-05-report.md",
+      "bytes": 5755,
+      "sha256": "1c2bccd1f990f289eeebad362eda0dcc26dcca4824caf7b3125d2b4a4b9aba42",
+      "text": true,
+      "lineCount": 81
+    },
+    {
+      "path": ".forsetti/remediation/phase-06-evidence.json",
+      "bytes": 4193,
+      "sha256": "2c3097f41c0fe5d7e1288b17ae756921cdda62805ca7c2dba6f996e364b4e503",
+      "text": true,
+      "lineCount": 104
+    },
+    {
+      "path": ".forsetti/remediation/phase-06-report.md",
+      "bytes": 5503,
+      "sha256": "45b68b5664dbe64749562efb6d2a02a38eb99504fc0c9a5cf9ed0922e8bbf495",
+      "text": true,
+      "lineCount": 81
+    },
+    {
+      "path": ".forsetti/remediation/phase-07-evidence.json",
+      "bytes": 8450,
+      "sha256": "9b529d7bc14b3e331707533b1433eec15b063ce4344663aff8fbbf9af0520594",
+      "text": true,
+      "lineCount": 247
+    },
+    {
+      "path": ".forsetti/remediation/phase-07-final-report.md",
+      "bytes": 7235,
+      "sha256": "70fcf7bf2341f270b6f0fa2eb59213896e057fac6dd0c90e7d1ed99922fde802",
+      "text": true,
+      "lineCount": 104
+    },
+    {
+      "path": ".forsetti/remediation/phase-07-report.md",
+      "bytes": 7235,
+      "sha256": "70fcf7bf2341f270b6f0fa2eb59213896e057fac6dd0c90e7d1ed99922fde802",
+      "text": true,
+      "lineCount": 104
+    },
+    {
+      "path": ".github/discussion_agents.json",
+      "bytes": 3252,
+      "sha256": "802c800a7ca6cae338afa3497b12eda4bb515b34b5645fce94427882194a3791",
+      "text": true,
+      "lineCount": 138
+    },
+    {
+      "path": ".github/discussion_moderation_policy.json",
+      "bytes": 2286,
+      "sha256": "9c36fe2175f0ab44bbc772a5c51183005db3fdc09d3ee15fab09c0fef8d784f0",
+      "text": true,
+      "lineCount": 94
+    },
+    {
+      "path": ".github/discussion_topic_generator.json",
+      "bytes": 1335,
+      "sha256": "93a782787dea54ab1f095c854ddc92958a4f6ff08af4f0b751896b87727a1d21",
+      "text": true,
+      "lineCount": 54
+    },
+    {
+      "path": ".github/labeler.yml",
+      "bytes": 743,
+      "sha256": "434e2324893a97e1d52bc73466c3b0ddef36292a625de529b9c0be35006b6c65",
+      "text": true,
+      "lineCount": 39
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "bytes": 1046,
+      "sha256": "cb83da226ef44147590bc7b682ca94b3fac9fb836763090efb3e33c4a7201410",
+      "text": true,
+      "lineCount": 35
+    },
+    {
+      "path": ".github/release-drafter-config.yml",
+      "bytes": 1087,
+      "sha256": "b48896b8807dbb1e7858c1c63500a106531f835d204ce354650464c9ba5d028f",
+      "text": true,
+      "lineCount": 54
+    },
+    {
+      "path": ".github/workflows/attribution-guard.yml",
+      "bytes": 2391,
+      "sha256": "61937c66fe09c7ad1a40865d0f317aafaccc9f166155e10fcf6a2f61df4939b5",
+      "text": true,
+      "lineCount": 77
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 446,
+      "sha256": "ab1ea5c34364f8629c9e4be7b03780a14847fbc4376f7735495e0c7084be83e5",
+      "text": true,
+      "lineCount": 46
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 1859,
+      "sha256": "95bf5c0df204bdae2dc42885b68caf8db3ec12ce5976d61fd014d48fd12a69a6",
+      "text": true,
+      "lineCount": 31
+    },
+    {
+      "path": "CMakeLists.txt",
+      "bytes": 926,
+      "sha256": "d464c7ce89b707d8ffe2efe10767ef5b7490b27ea5bf66a0cf2c6a8e20a1e9c2",
+      "text": true,
+      "lineCount": 37
+    },
+    {
+      "path": "CMakePresets.json",
+      "bytes": 1251,
+      "sha256": "50f7d30af94ba7770f877ca458a98422098e5a49c6b09d91633690c2cffecb85",
+      "text": true,
+      "lineCount": 51
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "bytes": 1299,
+      "sha256": "7e39f8494c02175e404cda8f5b014e9019c60b7e60ca650085be3bfcbb5c9c84",
+      "text": true,
+      "lineCount": 30
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "bytes": 2759,
+      "sha256": "b1b4065934a295e2f4b2c9c3a77d63ca8a83e89b55b0e12775d551eb566669f0",
+      "text": true,
+      "lineCount": 46
+    },
+    {
+      "path": "LICENSE.md",
+      "bytes": 2522,
+      "sha256": "26df28e2ba4d1e9515c39717effd51e202087a343abde00483c8825744f84f59",
+      "text": true,
+      "lineCount": 70
+    },
+    {
+      "path": "README.md",
+      "bytes": 9009,
+      "sha256": "1499ca3fc21dc1c8d92e5160f86f521a535a617f2556b52cf67aaf5eaecdddc1",
+      "text": true,
+      "lineCount": 210
+    },
+    {
+      "path": "Scripts/check-architecture.ps1",
+      "bytes": 4326,
+      "sha256": "4cd6a32404a7db56a44ce2520964c1c08415293cc19085777aa362b9576db2eb",
+      "text": true,
+      "lineCount": 88
+    },
+    {
+      "path": "Scripts/check-dependencies.ps1",
+      "bytes": 5110,
+      "sha256": "514f6f209f247bb1a6a49f1935d8225e6d4c0f1bd3c26699548f76c061ba2d66",
+      "text": true,
+      "lineCount": 113
+    },
+    {
+      "path": "Scripts/check-manifests.ps1",
+      "bytes": 5318,
+      "sha256": "e66663f509535e0e231758d7965cc98acdc9a42fd6ccc400aa464f22a89a14b8",
+      "text": true,
+      "lineCount": 143
+    },
+    {
+      "path": "Scripts/check-pr-compatibility.ps1",
+      "bytes": 5999,
+      "sha256": "9bba1bf6ca8a5580c3fb1610de7bb35191f58014c9b12d07f600bc4a6d2678e7",
+      "text": true,
+      "lineCount": 139
+    },
+    {
+      "path": "Scripts/github/discussion_agent.py",
+      "bytes": 18146,
+      "sha256": "385124f5033d62555e4530fefaa1b85c511b7e455cc481c003515545570f8ef3",
+      "text": true,
+      "lineCount": 618
+    },
+    {
+      "path": "Scripts/github/discussion_moderation_agent.py",
+      "bytes": 27724,
+      "sha256": "05caa9cb78fe25cce4e0c563a30f9e7c55acda3f010a34be002e64a0414fd7cb",
+      "text": true,
+      "lineCount": 823
+    },
+    {
+      "path": "Scripts/github/discussion_topic_agent.py",
+      "bytes": 22695,
+      "sha256": "7280b434c6d384b084f194e6f98a85987f4dbbe40ff9a9b7b35afbe2f025c26f",
+      "text": true,
+      "lineCount": 684
+    },
+    {
+      "path": "Scripts/test-guardrail-scripts.ps1",
+      "bytes": 3623,
+      "sha256": "10443e52a8f5ab2f9e570aab02709fb55b27fde82d920921fe07f810e456eef7",
+      "text": true,
+      "lineCount": 119
+    },
+    {
+      "path": "Scripts/verify-forsetti-guardrails.ps1",
+      "bytes": 2043,
+      "sha256": "340b057e3d797d5477b8c6df2ee6163bfe0a04c420d0366e147284d8e85d9267",
+      "text": true,
+      "lineCount": 51
+    },
+    {
+      "path": "agentic-coding-policy.json",
+      "bytes": 3915,
+      "sha256": "b02ab37e038f21ecb56ed902759cb2337ea51a0fbc28faec28975641f51b3435",
+      "text": true,
+      "lineCount": 84
+    },
+    {
+      "path": "docs/governance/discussion_moderation_policy.md",
+      "bytes": 2919,
+      "sha256": "0701e525394e07ff232950cbb29b157527ae0f578afa93d3cd70822858aa8422",
+      "text": true,
+      "lineCount": 62
+    },
+    {
+      "path": "docs/governance/github_automation_agents.md",
+      "bytes": 3713,
+      "sha256": "627a1d1bfbdf29f6600d9b8719eb31b8f5de46da67b338027c00021c3e121b65",
+      "text": true,
+      "lineCount": 64
+    },
+    {
+      "path": "forsetti-instructions.json",
+      "bytes": 4843,
+      "sha256": "e9369b2036f7eb7f11faddbcabc63707f417ed5184eb3061ae42ce0eb769851e",
+      "text": true,
+      "lineCount": 138
+    },
+    {
+      "path": "include/ForsettiCore/ActivationStore.h",
+      "bytes": 1385,
+      "sha256": "fda9021c6424457c384663283092997731b25208185926407d83d96eea8d962a",
+      "text": true,
+      "lineCount": 39
+    },
+    {
+      "path": "include/ForsettiCore/CapabilityPolicy.h",
+      "bytes": 1969,
+      "sha256": "13b13b0d9966cff731bb442563df5ba174bd8ff893ebd7005877d8cac92eeffa",
+      "text": true,
+      "lineCount": 57
+    },
+    {
+      "path": "include/ForsettiCore/CompatibilityChecker.h",
+      "bytes": 2103,
+      "sha256": "07cf620190616d50a00c263e49000b9d19f7d9608c35bfd8f6ac3f740d692c23",
+      "text": true,
+      "lineCount": 79
+    },
+    {
+      "path": "include/ForsettiCore/EntitlementProviders.h",
+      "bytes": 1904,
+      "sha256": "e6db317b68dbe5466afd46169529d8012a5b1d7030691b0a1282f1d598b2f9a2",
+      "text": true,
+      "lineCount": 51
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiContext.h",
+      "bytes": 6104,
+      "sha256": "d757e7120d73d1ee62af3b860c521465391e877a8cac74f23c2660c5be545421",
+      "text": true,
+      "lineCount": 147
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiEventBus.h",
+      "bytes": 2026,
+      "sha256": "e34da294e4912f33165e8851850a15c9c8ab94b7b9ca6dcfc27d3f1ff9b6d0c9",
+      "text": true,
+      "lineCount": 71
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiLogger.h",
+      "bytes": 1226,
+      "sha256": "19db5961470c33e9c666d9ca9af73a83cb275e02e39f8c57c1dcc0bbea9c81cc",
+      "text": true,
+      "lineCount": 48
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiProtocols.h",
+      "bytes": 2176,
+      "sha256": "a965a27beb8cb3b578a7c99a641c7b764359f62c7a9049a41e537f596546eb18",
+      "text": true,
+      "lineCount": 61
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiRuntime.h",
+      "bytes": 1597,
+      "sha256": "bd81a9866817624c85e41427be52c0d5ac5fda345083b10e81912d63a6e991fd",
+      "text": true,
+      "lineCount": 52
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiServiceContainer.h",
+      "bytes": 2152,
+      "sha256": "8b0e2a9f023cfd68f31bbacaf0e55da48354adb1e35703c4ab4be240d8488d5e",
+      "text": true,
+      "lineCount": 76
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiServices.h",
+      "bytes": 1573,
+      "sha256": "9471827639d2bec10d76d576e26eff635cd08b8485603b43be67004a47dec5d9",
+      "text": true,
+      "lineCount": 59
+    },
+    {
+      "path": "include/ForsettiCore/ForsettiVersion.h",
+      "bytes": 380,
+      "sha256": "69cfb3c01f51cb4ac43a018e75fd90983c10d5bbf262e503d9545e132d46482d",
+      "text": true,
+      "lineCount": 16
+    },
+    {
+      "path": "include/ForsettiCore/ManifestLoader.h",
+      "bytes": 1439,
+      "sha256": "e4955f00b503213c32430dc222537e744ab9b5a6ef68cfc5b6b2174c6b39d570",
+      "text": true,
+      "lineCount": 49
+    },
+    {
+      "path": "include/ForsettiCore/ModuleManager.h",
+      "bytes": 5062,
+      "sha256": "f98250fc87f92d15e35b0c9e453ed099d6d607d34cd1b0502e82c80aa1778cc3",
+      "text": true,
+      "lineCount": 148
+    },
+    {
+      "path": "include/ForsettiCore/ModuleModels.h",
+      "bytes": 2629,
+      "sha256": "7408a059e31f5ffc15fed81ff4ba33636ea48087a1c6a6291d3e0a8bd3eab444",
+      "text": true,
+      "lineCount": 108
+    },
+    {
+      "path": "include/ForsettiCore/ModuleRegistry.h",
+      "bytes": 2448,
+      "sha256": "57f0bebbaf07dfdf1afe4ebf097ab4f805d3d8539589ad1f19d34a93c273475b",
+      "text": true,
+      "lineCount": 77
+    },
+    {
+      "path": "include/ForsettiCore/SemVer.h",
+      "bytes": 1437,
+      "sha256": "81b4bc75e49582de3ddfe1f97bac47966df82771181234556a4e5f88ff4ad39f",
+      "text": true,
+      "lineCount": 47
+    },
+    {
+      "path": "include/ForsettiCore/StaticModuleRegistry.h",
+      "bytes": 480,
+      "sha256": "e0aa8e25a4ddd2e3a9a0360bf572435122144072527563587119e9828ef43bf5",
+      "text": true,
+      "lineCount": 20
+    },
+    {
+      "path": "include/ForsettiCore/UIModels.h",
+      "bytes": 7817,
+      "sha256": "fc3c806b400e77f6c6a9527ce5a54a7b576d041d86f2b49bfc7192659e3135a2",
+      "text": true,
+      "lineCount": 197
+    },
+    {
+      "path": "include/ForsettiCore/UISurfaceManager.h",
+      "bytes": 1756,
+      "sha256": "0c4a840650e4491b4b1167638a14f560d44d43a4c1e41aa9e6cdc456a6c8f100",
+      "text": true,
+      "lineCount": 50
+    },
+    {
+      "path": "include/ForsettiPlatform/DefaultPlatformServices.h",
+      "bytes": 1112,
+      "sha256": "4edf2f8da80408cff6252abcb29c85fdd6f860359bf763d01096775de6524c62",
+      "text": true,
+      "lineCount": 28
+    },
+    {
+      "path": "include/ForsettiPlatform/EntitlementProviders.h",
+      "bytes": 823,
+      "sha256": "d62b4ac7e0ea67d83f277b633e5534df75d7094a2c68c3ce651aeaa098e4663d",
+      "text": true,
+      "lineCount": 23
+    },
+    {
+      "path": "include/ForsettiPlatform/PlatformServices.h",
+      "bytes": 3376,
+      "sha256": "a91780ad39a2c2c79b553c3e50b0226a191f05887960d7aac91b2d92404f48c2",
+      "text": true,
+      "lineCount": 87
+    },
+    {
+      "path": "src/ForsettiCore/ActivationStore.cpp",
+      "bytes": 1715,
+      "sha256": "8c96797d23104ca16422f0c3df53436360ed0da015fe9cbea2f98c248c17aa9b",
+      "text": true,
+      "lineCount": 43
+    },
+    {
+      "path": "src/ForsettiCore/CMakeLists.txt",
+      "bytes": 879,
+      "sha256": "c9e9b74afad97a9850623079d53891b0f370b0971fc81a084bb8ca386f15d0af",
+      "text": true,
+      "lineCount": 33
+    },
+    {
+      "path": "src/ForsettiCore/CapabilityPolicy.cpp",
+      "bytes": 1242,
+      "sha256": "05c3cac1213ce8c5b5fa6375bfb08c467d511fdf527c2def2b2a5a2fc549d4b1",
+      "text": true,
+      "lineCount": 38
+    },
+    {
+      "path": "src/ForsettiCore/CompatibilityChecker.cpp",
+      "bytes": 3813,
+      "sha256": "df9ceeead8618a3925bb3e5135e7ff035e2d9c189ae7eeb740407ebb2e34b15e",
+      "text": true,
+      "lineCount": 102
+    },
+    {
+      "path": "src/ForsettiCore/EntitlementProviders.cpp",
+      "bytes": 2484,
+      "sha256": "e8d1660e8c4e4dfdf0b2e8a2b7f9a4fc3130b33e800b1440b89a632f23c51354",
+      "text": true,
+      "lineCount": 96
+    },
+    {
+      "path": "src/ForsettiCore/ForsettiContext.cpp",
+      "bytes": 6299,
+      "sha256": "f0babc417b9dd26a75e5958d8bc9055e0a82bc8aa9214d0ad94170d1fcc4609c",
+      "text": true,
+      "lineCount": 159
+    },
+    {
+      "path": "src/ForsettiCore/ForsettiEventBus.cpp",
+      "bytes": 2626,
+      "sha256": "6490fb3ef2c38c822e15aa813015b3570a296d431819e498f53626c8b6cecca8",
+      "text": true,
+      "lineCount": 99
+    },
+    {
+      "path": "src/ForsettiCore/ForsettiLogger.cpp",
+      "bytes": 1205,
+      "sha256": "f53a183693d9024dc7784fb8bc2027ecdcab061d56fac086bb6c81eff6c3d32b",
+      "text": true,
+      "lineCount": 49
+    },
+    {
+      "path": "src/ForsettiCore/ForsettiRuntime.cpp",
+      "bytes": 5819,
+      "sha256": "93992f2302e71ebfde3ef68757225fbb247ace0faa3b1f1b5b4086b53a49cbce",
+      "text": true,
+      "lineCount": 178
+    },
+    {
+      "path": "src/ForsettiCore/ForsettiServiceContainer.cpp",
+      "bytes": 2568,
+      "sha256": "2c801e45c77058f17cfbefa8751ccbf0b9fe3f02c4f6066786231fa1180496ed",
+      "text": true,
+      "lineCount": 79
+    },
+    {
+      "path": "src/ForsettiCore/ManifestLoader.cpp",
+      "bytes": 7667,
+      "sha256": "003c97c78c8c364e091f83fc5ddce67fd9a90974edc0e36c69d66c6d6d2207c8",
+      "text": true,
+      "lineCount": 243
+    },
+    {
+      "path": "src/ForsettiCore/ModuleManager.cpp",
+      "bytes": 21592,
+      "sha256": "cc7d0c0082480af9e6be2502e58e830b6479dad3195dbcf9c7c06934bdf5267d",
+      "text": true,
+      "lineCount": 633
+    },
+    {
+      "path": "src/ForsettiCore/ModuleModels.cpp",
+      "bytes": 6101,
+      "sha256": "737a3869c22ef04dbc18eebd467cc509f4526e6b3114c4f9eb30083d77df16dc",
+      "text": true,
+      "lineCount": 169
+    },
+    {
+      "path": "src/ForsettiCore/ModuleRegistry.cpp",
+      "bytes": 1250,
+      "sha256": "e0e22ca300a998f86dbe58793685f81d131aaf2e1a3852c5a0033b2fbdc48196",
+      "text": true,
+      "lineCount": 43
+    },
+    {
+      "path": "src/ForsettiCore/SemVer.cpp",
+      "bytes": 3581,
+      "sha256": "e66fcbfd598729ea7dec0100fd7ae031414cbc576b1fe41518b8a2b28f95bf0c",
+      "text": true,
+      "lineCount": 114
+    },
+    {
+      "path": "src/ForsettiCore/StaticModuleRegistry.cpp",
+      "bytes": 235,
+      "sha256": "008c6b4903458f1686301ca303bc4f15f80efb79fba866ecfdd95b056f87ba6a",
+      "text": true,
+      "lineCount": 5
+    },
+    {
+      "path": "src/ForsettiCore/UIModels.cpp",
+      "bytes": 11250,
+      "sha256": "c791d00d4e765699f069372b1c518ca2661d31847047cfca82d192388ea7ab98",
+      "text": true,
+      "lineCount": 327
+    },
+    {
+      "path": "src/ForsettiCore/UISurfaceManager.cpp",
+      "bytes": 5170,
+      "sha256": "6b5d233df21b95704e384722a5073106e5af8faa57aa6eb071706e8bdd7e68db",
+      "text": true,
+      "lineCount": 134
+    },
+    {
+      "path": "src/ForsettiModulesExample/CMakeLists.txt",
+      "bytes": 797,
+      "sha256": "8bd9b4675b266bd4b425cd6e7deacf8d159122852a2b3ae8874dba908471922f",
+      "text": true,
+      "lineCount": 23
+    },
+    {
+      "path": "src/ForsettiModulesExample/ExampleModuleRegistry.cpp",
+      "bytes": 625,
+      "sha256": "2feddd293d167981ac1a493905b22bcad13f7bc755498ea76b5959b1fd0bc4a5",
+      "text": true,
+      "lineCount": 19
+    },
+    {
+      "path": "src/ForsettiModulesExample/ExampleModules.cpp",
+      "bytes": 5425,
+      "sha256": "b4666671aa54e218c08a1f6b390319b42532684cb021f28e9c79d33c7a0e3141",
+      "text": true,
+      "lineCount": 162
+    },
+    {
+      "path": "src/ForsettiModulesExample/ExampleModules.h",
+      "bytes": 1615,
+      "sha256": "6554ed6bada4a0d32d55b714f3de36951b08fb502318bc7028d69ed7d2e03284",
+      "text": true,
+      "lineCount": 41
+    },
+    {
+      "path": "src/ForsettiModulesExample/Resources/ForsettiManifests/ExampleServiceModule.json",
+      "bytes": 528,
+      "sha256": "c864d5c45a0131a1072d455d3b17aa83ccb2b183d539653e52c97b752266c86f",
+      "text": true,
+      "lineCount": 23
+    },
+    {
+      "path": "src/ForsettiModulesExample/Resources/ForsettiManifests/ExampleUIModule.json",
+      "bytes": 563,
+      "sha256": "9d9fc9b9508632cf1067d13abf1ed8f517a201079ad05c0e3a31465a7ce3c5ca",
+      "text": true,
+      "lineCount": 23
+    },
+    {
+      "path": "src/ForsettiPlatform/CMakeLists.txt",
+      "bytes": 604,
+      "sha256": "68184cbfc79d55dac6b446cd997e23eaa90fa1d1f4eecbb68a435e188e6ac086",
+      "text": true,
+      "lineCount": 25
+    },
+    {
+      "path": "src/ForsettiPlatform/DefaultPlatformServices.cpp",
+      "bytes": 898,
+      "sha256": "201b6615cc5086ad99c14ad1a3804534355742d136bf8d5aa93877a4d4e33b32",
+      "text": true,
+      "lineCount": 27
+    },
+    {
+      "path": "src/ForsettiPlatform/EntitlementProviders.cpp",
+      "bytes": 489,
+      "sha256": "a75f4d4338445fa52262f9ebe7dd25c2aa2a0773b6f5eb393dc8bac87446cbf3",
+      "text": true,
+      "lineCount": 10
+    },
+    {
+      "path": "src/ForsettiPlatform/PlatformServices.cpp",
+      "bytes": 21247,
+      "sha256": "c1aa42880f60bb3e375edb300f23512152091730630cdbaecae4e1e96c38dc0a",
+      "text": true,
+      "lineCount": 724
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "bytes": 5135,
+      "sha256": "f37c14eabf138b953ed1bebaf52bea5f682e5622c32fc061e4a40b3124b4482c",
+      "text": true,
+      "lineCount": 119
+    },
+    {
+      "path": "tests/ForsettiArchitectureTests/ArchitectureEnforcementTests.cpp",
+      "bytes": 8009,
+      "sha256": "8878b9da332839891c000f1e80edc1e8d126e36aa84a36386be98ab8cbae6218",
+      "text": true,
+      "lineCount": 193
+    },
+    {
+      "path": "tests/ForsettiCoreTests/BootstrapTests.cpp",
+      "bytes": 5665,
+      "sha256": "1ad98e1fdbd850c580af81fcac63013a5186e2f9acfcdb1882642cabe0bbf28c",
+      "text": true,
+      "lineCount": 148
+    },
+    {
+      "path": "tests/ForsettiCoreTests/CompatibilityCheckerTests.cpp",
+      "bytes": 7957,
+      "sha256": "a8c21a810e635c86a619cabb521209a0af42d5a2f0727e003acfb4c341c9df80",
+      "text": true,
+      "lineCount": 224
+    },
+    {
+      "path": "tests/ForsettiCoreTests/EntitlementProviderTests.cpp",
+      "bytes": 4563,
+      "sha256": "84fa8451faad55c4bb5f54ec27e1b1605e001bd66a167e35fe5ba6540a4a53d1",
+      "text": true,
+      "lineCount": 153
+    },
+    {
+      "path": "tests/ForsettiCoreTests/ManifestLoaderTests.cpp",
+      "bytes": 11156,
+      "sha256": "2a972f021ebe9a2d45531c7f7d7311fcfd53582b419a3041022313332b313821",
+      "text": true,
+      "lineCount": 321
+    },
+    {
+      "path": "tests/ForsettiCoreTests/ModuleCommunicationTests.cpp",
+      "bytes": 16088,
+      "sha256": "36876a9770c3080e3e41c70cde5354d435ddcb7678364b6435693d0508a5a50a",
+      "text": true,
+      "lineCount": 489
+    },
+    {
+      "path": "tests/ForsettiCoreTests/ModuleLoggingTests.cpp",
+      "bytes": 2783,
+      "sha256": "9bb6d3a522735d49db7d477b45637c35e71e7a3b1182ef225b911659c69d8ab2",
+      "text": true,
+      "lineCount": 81
+    },
+    {
+      "path": "tests/ForsettiCoreTests/RuntimeLifecycleTests.cpp",
+      "bytes": 45034,
+      "sha256": "02a4bf30759bc246fe861eedde870f6e8525690d36af720501a5d40443709d84",
+      "text": true,
+      "lineCount": 1111
+    },
+    {
+      "path": "tests/ForsettiCoreTests/SemVerTests.cpp",
+      "bytes": 4078,
+      "sha256": "5de098267bd4757da6dcc8d2abda3f20476013b8d10da9d4927175a453276360",
+      "text": true,
+      "lineCount": 144
+    },
+    {
+      "path": "tests/ForsettiCoreTests/TestHelpers.h",
+      "bytes": 5888,
+      "sha256": "9ba81acfd10acb73d48d10c22429d70e0b128fbe565692dac0abb0334319b936",
+      "text": true,
+      "lineCount": 159
+    },
+    {
+      "path": "tests/ForsettiCoreTests/UISurfaceManagerTests.cpp",
+      "bytes": 7742,
+      "sha256": "1ef65f614642cb1cd7d840b49311c518e2f712e685056cfd56b29c8d34f4c635",
+      "text": true,
+      "lineCount": 207
+    },
+    {
+      "path": "tests/ForsettiPlatformTests/PlatformServicesTests.cpp",
+      "bytes": 9328,
+      "sha256": "fa40324073a78818e3013a72903242df8042aaa6fa687516a394c8718817cab1",
+      "text": true,
+      "lineCount": 306
+    },
+    {
+      "path": "vcpkg.json",
+      "bytes": 198,
+      "sha256": "684522e9a0b42bd6cb8280cbbc5576197ae49897a14508b52e4ba91a67421375",
+      "text": true,
+      "lineCount": 8
+    },
+    {
+      "path": "wiki.md",
+      "bytes": 3057,
+      "sha256": "2bedf78b1015d3f858ba8717a8462c50376d37aeaf87175dd22d87d81f6e0234",
+      "text": true,
+      "lineCount": 59
+    }
+  ]
+}

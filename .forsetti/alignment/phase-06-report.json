@@ -1,0 +1,48 @@
+{
+  "phase": "06",
+  "name": "ui-ownership-and-default-roles",
+  "timestampUtc": "2026-06-19T13:34:00Z",
+  "status": "completed-with-native-toolchain-blocked",
+  "changes": [
+    "Kept UI and app modules on one active surface slot so activating one replaces the previous UI/app module.",
+    "Changed UI contribution validation to enforce schema 1.1 runtimeRequirements.ui declared IDs during activation.",
+    "Validated toolbar item IDs, toolbar overlay route IDs, view injection view IDs and slot IDs, overlay route IDs, navigation pointer IDs, and module overlay view IDs against manifest declarations.",
+    "Replaced unconditional themeMask stripping with validation that requires ui_theme_mask capability and declared theme IDs.",
+    "Removed the obsolete UIThemeMask compatibility warning when policy allows the capability.",
+    "Updated framework and implementation policy text to describe declared, policy-approved theme mask handling."
+  ],
+  "testsAdded": [
+    "Schema 1.1 UI activation rejects undeclared toolbar item IDs.",
+    "Schema 1.1 declared theme masks are preserved in UISurfaceManager.",
+    "Compatibility checker allows UIThemeMask when policy allows it."
+  ],
+  "validation": [
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "rg stale themeMask stripping and UIThemeMask reserved text",
+      "result": "passed: no matches"
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "result": "blocked: ctest not installed"
+    }
+  ],
+  "knownLimitations": [
+    "Native compile and test execution still require Windows/MSVC, CMake, CTest, vcpkg, and PowerShell."
+  ]
+}

@@ -95,7 +95,28 @@ public:
 // ---------------------------------------------------------------------------
 // ForsettiContext — the dependency-injection hub given to modules
 // ---------------------------------------------------------------------------
-class ForsettiContext final {
+class IForsettiModuleContext {
+public:
+    virtual const std::string& moduleID() const noexcept = 0;
+    virtual std::shared_ptr<IServiceProvider> services() const = 0;
+    virtual std::shared_ptr<IForsettiLogger> logger() const = 0;
+    virtual void publishEvent(
+        const std::string& eventType,
+        const std::map<std::string, std::string>& payload = {}) = 0;
+    virtual void sendMessage(
+        const std::string& targetModuleID,
+        const std::string& eventType,
+        const std::map<std::string, std::string>& payload = {}) = 0;
+    virtual SubscriptionToken subscribeToMessages(
+        const std::string& eventType,
+        std::function<void(const ForsettiEvent&)> handler) = 0;
+    virtual SubscriptionToken subscribeToFrameworkEvents(
+        const std::string& eventType,
+        std::function<void(const ForsettiEvent&)> handler) = 0;
+    virtual ~IForsettiModuleContext() = default;
+};
+
+class ForsettiContext final : public IForsettiModuleContext {
 public:
     ForsettiContext(std::shared_ptr<IServiceProvider> services,
                     std::shared_ptr<IForsettiEventBus> eventBus,
@@ -104,11 +125,12 @@ public:
                     std::shared_ptr<IModuleCommunicationGuard> guard);
 
     // Accessors
-    [[nodiscard]] std::shared_ptr<IServiceProvider> services() const;
+    [[nodiscard]] std::shared_ptr<IServiceProvider> services() const override;
     [[nodiscard]] std::shared_ptr<IForsettiEventBus> eventBus() const;
-    [[nodiscard]] std::shared_ptr<IForsettiLogger> logger() const;
+    [[nodiscard]] std::shared_ptr<IForsettiLogger> logger() const override;
     [[nodiscard]] std::shared_ptr<IOverlayRouter> router() const;
-    [[nodiscard]] const std::optional<std::string>& moduleID() const noexcept;
+    [[nodiscard]] const std::string& moduleID() const noexcept override;
+    [[nodiscard]] const std::optional<std::string>& scopedModuleID() const noexcept;
     [[nodiscard]] const std::set<Capability>& grantedCapabilities() const noexcept;
 
     [[nodiscard]] std::shared_ptr<ForsettiContext> scopedToModule(
@@ -118,21 +140,32 @@ public:
     // Framework event publishing (direct, no guard)
     void publishFrameworkEvent(const ForsettiEvent& event);
 
+    // Module-originated event publishing (capability checked)
+    void publishEvent(
+        const std::string& eventType,
+        const std::map<std::string, std::string>& payload = {}) override;
+
     // Module-to-module messaging (validated via guard)
     void sendModuleMessage(const std::string& targetModuleID,
                            const std::string& eventType,
                            const std::map<std::string, std::string>& payload = {});
+    void sendMessage(const std::string& targetModuleID,
+                     const std::string& eventType,
+                     const std::map<std::string, std::string>& payload = {}) override;
 
     // Subscribe to module messages filtered by targetModuleID
     SubscriptionToken subscribeToModuleMessages(
         const std::string& targetModuleID,
         const std::string& eventType,
         std::function<void(const ForsettiEvent&)> handler);
+    SubscriptionToken subscribeToMessages(
+        const std::string& eventType,
+        std::function<void(const ForsettiEvent&)> handler) override;
 
     // Subscribe to framework events (direct, no filtering)
     SubscriptionToken subscribeToFrameworkEvents(
         const std::string& eventType,
-        std::function<void(const ForsettiEvent&)> handler);
+        std::function<void(const ForsettiEvent&)> handler) override;
 
 private:
     std::shared_ptr<IServiceProvider> services_;

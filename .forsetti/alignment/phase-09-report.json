@@ -1,0 +1,59 @@
+{
+  "phase": "09",
+  "name": "tests-and-final-validation",
+  "timestampUtc": "2026-06-19T13:16:25Z",
+  "status": "blocked",
+  "changes": [
+    "Added runtime coverage for missing required I/O providers, missing required default-role providers, undeclared schema 1.1 UI contribution IDs, and declared theme mask preservation.",
+    "Updated compatibility coverage for allowed UIThemeMask policy.",
+    "Updated architecture tests for split example-module boundaries.",
+    "Ran all locally available static, JSON, manifest, script, and repository-surface validations.",
+    "Attempted mandatory Debug/Release CMake, CTest, and guardrail wrapper commands and recorded environment blockers."
+  ],
+  "validation": [
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "python3 manifest validation over src/templates/samples/tests ForsettiManifests",
+      "result": "passed"
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "result": "blocked: ctest not installed"
+    },
+    {
+      "command": "cmake --preset release",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "cmake --build --preset release",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "ctest --preset release --output-on-failure",
+      "result": "blocked: ctest not installed"
+    },
+    {
+      "command": "pwsh -NoProfile -File ./Scripts/verify-forsetti-guardrails.ps1",
+      "result": "blocked: pwsh not installed"
+    }
+  ],
+  "knownLimitations": [
+    "Final native Debug/Release build and test gates remain blocked on this host.",
+    "Final status cannot be passed until Windows/MSVC, CMake, CTest, vcpkg, and PowerShell validation succeeds."
+  ]
+}

@@ -4,25 +4,28 @@ All notable changes to Forsetti Framework - Windows are documented in this file.
 
 The project uses Conventional Commit style for commit messages. Release entries should group user-visible changes by area and should call out runtime contract changes, validation changes, and follow-up owner decisions.
 
-## [Unreleased] - 2026-05-15
+## [Unreleased] - 2026-06-19
 
-### Documentation
+### Runtime Contract
 
-- Expanded `README.md` into a comprehensive repository entry point with architecture, runtime flow, build/test, guardrail, manifest, and documentation sections.
-- Updated `wiki.md` as the tracked index for the public GitHub Wiki page set.
-- Updated contributor and governance documents so repository docs match the completed remediation state.
-- Rebuilt the public GitHub Wiki with detailed pages and visual aids for architecture, lifecycle, capabilities, UI composition, platform services, validation, governance, and roadmap decisions.
+- Added manifest schema 1.1 with runtime requirements, UI declarations, default roles, and 1.0 compatibility.
+- Added `IForsettiModuleContext` as the module lifecycle surface.
+- Added module registration records, canonical manifest hashing, and activation-time registration confirmation.
+- Added runtime requirement validation, scoped storage wrappers, and default-role provider resolution.
+- Added schema-declared UI contribution validation and preserved declared theme masks.
+
+### Host And Examples
+
+- Added the sealed `ForsettiHostTemplate` composition layer.
+- Added a downstream `samples/ForsettiDemo` composition root.
+- Split example service, UI, and app modules into isolated targets with owned manifests.
+- Added Windows module and host starter templates.
 
 ### Validation And Guardrails
 
-- Documented the completed Phase 00 through Phase 07 remediation sequence and final acceptance status.
-- Recorded the local validation baseline: `cmake --preset debug`, `cmake --build --preset debug`, `ctest --preset debug --output-on-failure`, and `Scripts/verify-forsetti-guardrails.ps1`.
-- Clarified that the repository currently exposes `debug` and `release` CMake presets.
-
-### Runtime Contract Summary
-
-- Documented manifest parity, factory identity validation, capability-scoped service access, source identity protection, UI contribution capability checks, and Windows platform adapter behavior.
-- Documented remaining owner decision points: remote build/test parity restoration, vcpkg baseline pinning, planned host-template implementation, theme policy exposure, and module-originated framework event design.
+- Updated manifest validation for schema 1.1, recursive template/sample scanning, exact Windows platform casing, duplicate checks, and runtime requirement checks.
+- Renamed repository surface checks to neutral terminology and removed stale historical completion claims.
+- Native Debug/Release validation remains pending on a Windows toolchain.
 
 ## [v0.1.0] - 2026-03-09
 

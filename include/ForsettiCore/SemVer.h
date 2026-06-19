@@ -31,9 +31,7 @@ struct SemVer final {
     /// Convert to string representation
     std::string toString() const;
 
-    /// Spaceship operator for three-way comparison.
-    /// Prerelease versions are lower than release versions (per SemVer spec).
-    /// When both have prerelease, compare lexicographically.
+    /// Spaceship operator for three-way comparison using Semantic Versioning precedence.
     std::strong_ordering operator<=>(const SemVer& other) const;
 
     /// Equality operator

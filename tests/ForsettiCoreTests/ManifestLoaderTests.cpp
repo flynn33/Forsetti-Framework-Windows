@@ -53,6 +53,63 @@ namespace {
             {"entryPoint", "TestModule"}
         };
     }
+
+    nlohmann::json makeValidManifest11JSON(
+        const std::string& moduleID = "com.test.module",
+        const std::string& moduleType = "service")
+    {
+        auto j = makeValidManifestJSON(moduleID);
+        j["schemaVersion"] = "1.1";
+        j["manifestTemplateVersion"] = "1.1";
+        j["moduleType"] = moduleType;
+        j["minForsettiVersion"] = {
+            {"major", 0},
+            {"minor", 2},
+            {"patch", 0},
+            {"prerelease", nullptr}
+        };
+        j["defaultModuleRole"] = nullptr;
+        j["runtimeRequirements"] = {
+            {"io", nlohmann::json::array({
+                {
+                    {"requirementID", "storage.test-state"},
+                    {"kind", "storage"},
+                    {"access", "read_write"},
+                    {"required", true},
+                    {"description", "Private test state."}
+                }
+            })},
+            {"ui", nullptr},
+            {"dataIsolation", {
+                {"mode", "private_to_module"},
+                {"ownedStoreIDs", nlohmann::json::array({"test-state"})},
+                {"requiredDefaultRoles", nlohmann::json::array()}
+            }}
+        };
+
+        if (moduleType == "ui" || moduleType == "app") {
+            j["capabilitiesRequested"] = nlohmann::json::array({
+                "storage",
+                "routing_overlay",
+                "toolbar_items",
+                "view_injection",
+                "ui_theme_mask"
+            });
+            j["defaultModuleRole"] = "ui";
+            j["runtimeRequirements"]["ui"] = {
+                {"controlSchemeID", "test.controls"},
+                {"layoutID", "test.layout"},
+                {"themeIDs", nlohmann::json::array({"test.theme"})},
+                {"viewIDs", nlohmann::json::array({"test.view"})},
+                {"slotIDs", nlohmann::json::array({"test.slot"})},
+                {"toolbarItemIDs", nlohmann::json::array({"test.toolbar"})},
+                {"routeIDs", nlohmann::json::array({"test.route"})},
+                {"pointerIDs", nlohmann::json::array({"test.pointer"})}
+            };
+        }
+
+        return j;
+    }
 }
 
 TEST_CLASS(ManifestLoaderTests)
@@ -187,6 +244,80 @@ public:
         Assert::AreEqual(std::string("com.test.iap"), m.iapProductID.value());
     }
 
+    TEST_METHOD(LoadManifests_Schema10DefaultsRuntimeRequirementFields)
+    {
+        TempManifestDir dir;
+        dir.writeManifest("module.json", makeValidManifestJSON("com.test.legacy"));
+
+        auto manifests = ManifestLoader::loadManifests(dir.path());
+        Assert::AreEqual(size_t(1), manifests.size());
+
+        const auto& manifest = manifests[0];
+        Assert::IsTrue(manifest.manifestTemplateVersion == ManifestTemplateVersion::V1_0);
+        Assert::IsFalse(manifest.defaultModuleRole.has_value());
+        Assert::AreEqual(size_t(0), manifest.runtimeRequirements.io.size());
+        Assert::IsFalse(manifest.runtimeRequirements.ui.has_value());
+        Assert::IsTrue(manifest.runtimeRequirements.dataIsolation.mode == ModuleDataIsolationMode::PrivateToModule);
+        Assert::AreEqual(size_t(0), manifest.runtimeRequirements.dataIsolation.ownedStoreIDs.size());
+        Assert::AreEqual(size_t(0), manifest.runtimeRequirements.dataIsolation.requiredDefaultRoles.size());
+    }
+
+    TEST_METHOD(ModuleRequirementEnums_RoundTripAndRejectUnknown)
+    {
+        nlohmann::json kindJson = ModuleIOKind::CryptoUtilities;
+        Assert::AreEqual(std::string("crypto_utilities"), kindJson.get<std::string>());
+        Assert::IsTrue(kindJson.get<ModuleIOKind>() == ModuleIOKind::CryptoUtilities);
+
+        nlohmann::json accessJson = ModuleIOAccess::ReadWrite;
+        Assert::AreEqual(std::string("read_write"), accessJson.get<std::string>());
+        Assert::IsTrue(accessJson.get<ModuleIOAccess>() == ModuleIOAccess::ReadWrite);
+
+        nlohmann::json roleJson = DefaultModuleRole::Authentication;
+        Assert::AreEqual(std::string("authentication"), roleJson.get<std::string>());
+        Assert::IsTrue(roleJson.get<DefaultModuleRole>() == DefaultModuleRole::Authentication);
+
+        Assert::ExpectException<std::invalid_argument>([]() {
+            (void)moduleIOKindFromString("unknown");
+        });
+        Assert::ExpectException<std::invalid_argument>([]() {
+            (void)defaultModuleRoleFromString("unknown");
+        });
+    }
+
+    TEST_METHOD(LoadManifests_Schema11ParsesRuntimeRequirements)
+    {
+        TempManifestDir dir;
+        dir.writeManifest("module.json", makeValidManifest11JSON("com.test.current"));
+
+        auto manifests = ManifestLoader::loadManifests(dir.path());
+        Assert::AreEqual(size_t(1), manifests.size());
+
+        const auto& manifest = manifests[0];
+        Assert::AreEqual(std::string("1.1"), manifest.schemaVersion);
+        Assert::IsTrue(manifest.manifestTemplateVersion == ManifestTemplateVersion::V1_1);
+        Assert::AreEqual(size_t(1), manifest.runtimeRequirements.io.size());
+        Assert::AreEqual(std::string("storage.test-state"), manifest.runtimeRequirements.io[0].requirementID);
+        Assert::IsTrue(manifest.runtimeRequirements.io[0].kind == ModuleIOKind::Storage);
+        Assert::IsTrue(manifest.runtimeRequirements.io[0].access == ModuleIOAccess::ReadWrite);
+        Assert::IsTrue(manifest.runtimeRequirements.io[0].required);
+    }
+
+    TEST_METHOD(LoadManifests_Schema11UIParsesUIContract)
+    {
+        TempManifestDir dir;
+        dir.writeManifest("ui.json", makeValidManifest11JSON("com.test.ui", "ui"));
+
+        auto manifests = ManifestLoader::loadManifests(dir.path());
+        Assert::AreEqual(size_t(1), manifests.size());
+
+        const auto& manifest = manifests[0];
+        Assert::IsTrue(manifest.defaultModuleRole == DefaultModuleRole::UI);
+        Assert::IsTrue(manifest.runtimeRequirements.ui.has_value());
+        Assert::AreEqual(
+            std::string("test.view"),
+            manifest.runtimeRequirements.ui.value().viewIDs[0]);
+    }
+
     TEST_METHOD(PlatformFromString_RejectsApplePlatforms)
     {
         Assert::ExpectException<std::invalid_argument>([]() {
@@ -313,6 +444,131 @@ public:
         auto j = makeValidManifestJSON("com.test.unsafe-entry");
         j["entryPoint"] = "../TestModule";
         dir.writeManifest("unsafe-entry.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsSchemaTemplateMismatch)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.template-mismatch");
+        j["manifestTemplateVersion"] = "1.0";
+        dir.writeManifest("template.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsSchema11MissingRuntimeRequirements)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.missing-runtime");
+        j.erase("runtimeRequirements");
+        dir.writeManifest("missing-runtime.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsDuplicateCapabilities)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.duplicate-capability");
+        j["capabilitiesRequested"] = nlohmann::json::array({"storage", "storage"});
+        dir.writeManifest("duplicate-capability.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsDuplicateIORequirementID)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.duplicate-io");
+        j["runtimeRequirements"]["io"].push_back(j["runtimeRequirements"]["io"][0]);
+        dir.writeManifest("duplicate-io.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsServiceModuleUIRequirements)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.service-ui");
+        j["runtimeRequirements"]["ui"] = makeValidManifest11JSON("com.test.ui", "ui")["runtimeRequirements"]["ui"];
+        dir.writeManifest("service-ui.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsUIModuleMissingUIRequirements)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.ui-missing", "ui");
+        j["runtimeRequirements"]["ui"] = nullptr;
+        dir.writeManifest("ui-missing.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsDuplicateUIIDsAcrossCategories)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.ui-duplicate", "ui");
+        j["runtimeRequirements"]["ui"]["slotIDs"] = nlohmann::json::array({"test.view"});
+        dir.writeManifest("ui-duplicate.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsIORequirementWithoutCapability)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.io-capability");
+        j["runtimeRequirements"]["io"].push_back({
+            {"requirementID", "telemetry.missing-capability"},
+            {"kind", "telemetry"},
+            {"access", "emit"},
+            {"required", true}
+        });
+        dir.writeManifest("io-capability.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsDefaultRoleTypeMismatch)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.role-mismatch");
+        j["defaultModuleRole"] = "ui";
+        dir.writeManifest("role-mismatch.json", j);
+
+        Assert::ExpectException<ManifestLoaderException>([&dir]() {
+            (void)ManifestLoader::loadManifests(dir.path());
+        });
+    }
+
+    TEST_METHOD(LoadManifests_RejectsSharedIsolationWithoutSharedDatabaseDeclaration)
+    {
+        TempManifestDir dir;
+        auto j = makeValidManifest11JSON("com.test.shared-isolation");
+        j["runtimeRequirements"]["dataIsolation"]["mode"] = "framework_mediated_shared";
+        dir.writeManifest("shared-isolation.json", j);
 
         Assert::ExpectException<ManifestLoaderException>([&dir]() {
             (void)ManifestLoader::loadManifests(dir.path());

@@ -5,6 +5,7 @@
 #include "CppUnitTest.h"
 #include "ForsettiCore/SemVer.h"
 #include <nlohmann/json.hpp>
+#include <vector>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Forsetti;
@@ -116,6 +117,42 @@ public:
         Assert::IsTrue(SemVer(1, 0, 0, "alpha") < SemVer(1, 0, 0, "beta"));
     }
 
+    TEST_METHOD(Comparison_PrereleaseSemVerPrecedence)
+    {
+        std::vector<SemVer> ordered = {
+            SemVer(1, 0, 0, "alpha"),
+            SemVer(1, 0, 0, "alpha.1"),
+            SemVer(1, 0, 0, "alpha.beta"),
+            SemVer(1, 0, 0, "beta"),
+            SemVer(1, 0, 0, "beta.2"),
+            SemVer(1, 0, 0, "beta.11"),
+            SemVer(1, 0, 0, "rc.1"),
+            SemVer(1, 0, 0)
+        };
+
+        for (std::size_t index = 1; index < ordered.size(); ++index) {
+            Assert::IsTrue(ordered[index - 1] < ordered[index]);
+        }
+    }
+
+    TEST_METHOD(Constructor_RejectsNegativeComponents)
+    {
+        Assert::ExpectException<std::invalid_argument>([]() {
+            (void)SemVer(-1, 0, 0);
+        });
+    }
+
+    TEST_METHOD(FromString_RejectsInvalidSemVerForms)
+    {
+        Assert::IsFalse(SemVer::fromString("+1.2.3").has_value());
+        Assert::IsFalse(SemVer::fromString("1.2.3+build.1").has_value());
+        Assert::IsFalse(SemVer::fromString("1.2.3-").has_value());
+        Assert::IsFalse(SemVer::fromString("1.2.3-alpha..1").has_value());
+        Assert::IsFalse(SemVer::fromString("1.2.3-01").has_value());
+        Assert::IsFalse(SemVer::fromString("01.2.3").has_value());
+        Assert::IsFalse(SemVer::fromString("1. 2.3").has_value());
+    }
+
     TEST_METHOD(JSON_RoundTrip)
     {
         SemVer original(1, 2, 3, "rc.1");
@@ -140,5 +177,19 @@ public:
         Assert::AreEqual(2, j["major"].get<int>());
         Assert::AreEqual(5, j["minor"].get<int>());
         Assert::AreEqual(1, j["patch"].get<int>());
+    }
+
+    TEST_METHOD(JSON_RejectsInvalidVersion)
+    {
+        nlohmann::json j = {
+            {"major", 1},
+            {"minor", 0},
+            {"patch", 0},
+            {"prerelease", "alpha..1"}
+        };
+
+        Assert::ExpectException<std::invalid_argument>([&j]() {
+            (void)j.get<SemVer>();
+        });
     }
 };

@@ -3,6 +3,8 @@
 
 add_library(ForsettiPlatform STATIC
     PlatformServices.cpp
+    ModuleRegistrationPlatform.cpp
+    WindowsViewFactoryRegistry.cpp
     EntitlementProviders.cpp
     DefaultPlatformServices.cpp
 )
@@ -18,8 +20,9 @@ target_link_libraries(ForsettiPlatform PUBLIC
 # Windows SDK libraries for platform services
 target_link_libraries(ForsettiPlatform PRIVATE
     advapi32
+    bcrypt
     crypt32
     winhttp
 )
 
-# ForsettiPlatform must NOT link to ForsettiHostTemplate or ForsettiModulesExample
+# ForsettiPlatform must NOT link to ForsettiHostTemplate or example modules

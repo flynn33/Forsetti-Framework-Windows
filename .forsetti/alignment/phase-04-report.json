@@ -1,0 +1,53 @@
+{
+  "phase": "04",
+  "name": "runtime-requirements-and-data-isolation",
+  "timestampUtc": "2026-06-19T13:34:00Z",
+  "status": "completed-with-native-toolchain-blocked",
+  "changes": [
+    "Added ModuleRequirementValidator to compare declared runtime I/O requirements against requested capabilities and scoped service availability.",
+    "Integrated runtime requirement validation into ModuleManager activation before module factory resolution.",
+    "Extended capability-scoped service resolution to deny unknown module-scope service types instead of exposing inner services by default.",
+    "Added scoped storage, secure storage, and file export wrappers that namespace module keys and filenames.",
+    "Rejected empty, traversal, separator, device-name, control-character, and trailing-space/dot caller keys for scoped persistence and export services.",
+    "Mapped shared_database, authentication, diagnostics, api, security, and crypto_utilities I/O kinds to module-scoped service contracts."
+  ],
+  "testsAdded": [
+    "Scoped storage resolves through a module wrapper when storage capability is granted.",
+    "Scoped storage rejects traversal-style keys.",
+    "Module activation validates required runtime I/O providers before factory resolution."
+  ],
+  "validation": [
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "rg old lifecycle and stale themeMask patterns",
+      "result": "passed: no matches"
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "result": "blocked: ctest not installed"
+    },
+    {
+      "command": "pwsh -NoProfile -File ./Scripts/check-manifests.ps1",
+      "result": "blocked: pwsh not installed"
+    }
+  ],
+  "knownLimitations": [
+    "Native compile and test execution still require Windows/MSVC, CMake, CTest, vcpkg, and PowerShell.",
+    "Secure storage and file export wrapper behavior is implemented but awaits native test execution."
+  ]
+}

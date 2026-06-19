@@ -68,7 +68,10 @@ std::string manifestDifferenceMessage(
         "maxForsettiVersion",
         "capabilitiesRequested",
         "iapProductID",
-        "entryPoint"
+        "entryPoint",
+        "manifestTemplateVersion",
+        "defaultModuleRole",
+        "runtimeRequirements"
     };
 
     std::vector<std::string> differences;
@@ -108,6 +111,35 @@ bool actionRequiresCapability(const ToolbarAction& action, Capability capability
     }, action);
 }
 
+bool usesDeclaredUIRequirements(const ModuleManifest& manifest)
+{
+    return manifest.schemaVersion == "1.1" ||
+           manifest.manifestTemplateVersion == ManifestTemplateVersion::V1_1;
+}
+
+bool containsDeclaredID(const std::vector<std::string>& declaredIDs, const std::string& id)
+{
+    return std::find(declaredIDs.begin(), declaredIDs.end(), id) != declaredIDs.end();
+}
+
+void requireDeclaredUIID(
+    const std::vector<std::string>& declaredIDs,
+    const std::string& id,
+    const std::string& contributionField,
+    const std::string& manifestField,
+    const std::string& moduleID)
+{
+    if (containsDeclaredID(declaredIDs, id)) {
+        return;
+    }
+
+    throw ModuleManagerException(
+        ModuleManagerError::RequirementValidationFailed,
+        "UI contribution " + contributionField + " " + quoteDiagnosticValue(id) +
+            " is not declared in " + manifestField + " for module " +
+            quoteDiagnosticValue(moduleID));
+}
+
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -135,14 +167,24 @@ ModuleManager::ModuleManager(
     std::shared_ptr<IEntitlementProvider> entitlementProvider,
     std::shared_ptr<IActivationStore> store,
     std::shared_ptr<UISurfaceManager> surfaceManager,
-    std::shared_ptr<ForsettiContext> context)
+    std::shared_ptr<ForsettiContext> context,
+    std::shared_ptr<ModuleRegistrationService> registrationService,
+    std::shared_ptr<ModuleRequirementValidator> requirementValidator)
     : registry_(std::move(registry))
     , checker_(std::move(checker))
     , entitlementProvider_(std::move(entitlementProvider))
     , store_(std::move(store))
     , surfaceManager_(std::move(surfaceManager))
     , context_(std::move(context))
+    , registrationService_(std::move(registrationService))
+    , requirementValidator_(std::move(requirementValidator))
 {
+    if (!registrationService_) {
+        registrationService_ = ModuleRegistrationService::makeInMemory();
+    }
+    if (!requirementValidator_) {
+        requirementValidator_ = std::make_shared<ModuleRequirementValidator>();
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -154,6 +196,9 @@ void ModuleManager::discoverManifests(const std::string& manifestDirectory)
     std::lock_guard<std::mutex> lock(mutex_);
 
     auto manifests = ManifestLoader::loadManifests(manifestDirectory);
+    registrationService_->confirmAllDiscoveredManifests(manifests);
+
+    manifestsByID_.clear();
     for (auto& manifest : manifests) {
         manifestsByID_[manifest.moduleID] = std::move(manifest);
     }
@@ -180,7 +225,10 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
     }
     const auto& manifest = manifestIt->second;
 
-    // 2. Compatibility check
+    // 2. Confirmed registration check
+    validateConfirmedRegistration(manifest);
+
+    // 3. Compatibility check
     auto report = checker_->checkCompatibility(manifest);
     if (!report.isCompatible()) {
         throw ModuleManagerException(
@@ -188,7 +236,7 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
             "Module is incompatible: " + moduleID);
     }
 
-    // 3. Entitlement check — unlocked by moduleID or iapProductID
+    // 4. Entitlement check — unlocked by moduleID or iapProductID
     bool unlocked = entitlementProvider_->isUnlocked(moduleID);
     if (!unlocked && manifest.iapProductID.has_value()) {
         unlocked = entitlementProvider_->isUnlocked(manifest.iapProductID.value());
@@ -199,14 +247,19 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
             "Entitlement required for module: " + moduleID);
     }
 
-    // 4. Already active?
+    // 5. Already active?
     if (loadedModules_.find(moduleID) != loadedModules_.end()) {
         throw ModuleManagerException(
             ModuleManagerError::AlreadyActive,
             "Module already active: " + moduleID);
     }
 
-    // 5. Create and validate module via registry
+    // 6. Create scoped context and validate runtime requirements before factory resolution
+    auto moduleContext = makeModuleContext(manifest);
+    validateRuntimeRequirements(manifest, *moduleContext);
+    validateRequiredDefaultRoles(manifest);
+
+    // 7. Create and validate module via registry
     auto module = registry_.makeModule(manifest.entryPoint);
     if (!module) {
         throw ModuleManagerException(
@@ -214,9 +267,8 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
             "Registry has no factory for entry point: " + manifest.entryPoint);
     }
     validateResolvedModule(*module, manifest);
-    auto moduleContext = makeModuleContext(manifest);
 
-    // 6. Route by type
+    // 8. Route by type
     try {
         if (manifest.moduleType == ModuleType::Service) {
             module->start(*moduleContext);
@@ -247,11 +299,11 @@ void ModuleManager::activateModuleLocked(const std::string& moduleID, bool persi
         throw;
     }
 
-    // 7. Store loaded module
+    // 9. Store loaded module
     moduleContexts_[moduleID] = std::move(moduleContext);
     loadedModules_[moduleID] = std::move(module);
 
-    // 8. Persist state
+    // 10. Persist state
     if (persistAfterActivation) {
         persistState();
     }
@@ -268,7 +320,7 @@ void ModuleManager::activateUIModule(
     ForsettiContext& moduleContext)
 {
     auto contributions = uiModule->uiContributions();
-    validateUIContributions(moduleID, contributions, manifest.capabilitiesRequested);
+    validateUIContributions(manifest, contributions);
     auto sanitized = sanitizedUIContributions(contributions);
 
     const auto previousID = activeUIModuleID_;
@@ -503,6 +555,11 @@ const std::unordered_map<std::string, ModuleManifest>& ModuleManager::manifestsB
     return manifestsByID_;
 }
 
+std::vector<ModuleRegistrationRecord> ModuleManager::registeredModules() const
+{
+    return registrationService_->registeredModules();
+}
+
 bool ModuleManager::isModuleActive(const std::string& moduleID) const
 {
     return loadedModules_.find(moduleID) != loadedModules_.end();
@@ -564,6 +621,66 @@ void ModuleManager::validateResolvedModule(const IForsettiModule& module, const 
     }
 }
 
+void ModuleManager::validateConfirmedRegistration(const ModuleManifest& manifest) const
+{
+    const auto record = registrationService_->load(manifest.moduleID);
+    if (!record.has_value()) {
+        throw ModuleManagerException(
+            ModuleManagerError::RegistrationMissing,
+            "Module registration is missing: " + manifest.moduleID);
+    }
+
+    if (!record->confirmed) {
+        throw ModuleManagerException(
+            ModuleManagerError::RegistrationUnconfirmed,
+            "Module registration is not confirmed: " + manifest.moduleID);
+    }
+
+    if (!registrationService_->isConfirmedMatch(manifest)) {
+        throw ModuleManagerException(
+            ModuleManagerError::RegistrationMismatch,
+            "Module registration does not match discovered manifest: " + manifest.moduleID);
+    }
+}
+
+void ModuleManager::validateRuntimeRequirements(
+    const ModuleManifest& manifest,
+    const ForsettiContext& moduleContext) const
+{
+    const auto result = requirementValidator_->validate(manifest, *moduleContext.services());
+    if (!result.hasErrors()) {
+        return;
+    }
+
+    std::vector<std::string> messages;
+    for (const auto& issue : result.issues) {
+        if (issue.severity == ModuleRequirementSeverity::Error) {
+            messages.push_back(issue.requirementID + ": " + issue.message);
+        }
+    }
+
+    throw ModuleManagerException(
+        ModuleManagerError::RequirementValidationFailed,
+        "Module requirements failed validation: " + joinDiagnosticParts(messages));
+}
+
+void ModuleManager::validateRequiredDefaultRoles(const ModuleManifest& manifest) const
+{
+    if (manifest.runtimeRequirements.dataIsolation.requiredDefaultRoles.empty()) {
+        return;
+    }
+
+    auto catalog = std::make_shared<DefaultModuleCatalog>(registrationService_->registeredModules());
+    DefaultModuleOrchestrator orchestrator(catalog);
+    try {
+        (void)orchestrator.resolveRequiredRoles(manifest);
+    } catch (const DefaultModuleRoleException& ex) {
+        throw ModuleManagerException(
+            ModuleManagerError::RequirementValidationFailed,
+            "Default role validation failed: " + std::string(ex.what()));
+    }
+}
+
 std::shared_ptr<ForsettiContext> ModuleManager::makeModuleContext(const ModuleManifest& manifest) const
 {
     return context_->scopedToModule(manifest.moduleID, manifest.capabilitiesRequested);
@@ -581,22 +698,17 @@ void ModuleManager::persistState()
 
 UIContributions ModuleManager::sanitizedUIContributions(const UIContributions& original) const
 {
-    UIContributions sanitized = original;
-    sanitized.themeMask = std::nullopt;
-    return sanitized;
+    return original;
 }
 
-void ModuleManager::validateUIContributions(
-    const std::string& moduleID,
-    const UIContributions& contributions,
-    const std::vector<Capability>& grantedCapabilities) const
+void ModuleManager::validateUIContributions(const ModuleManifest& manifest, const UIContributions& contributions) const
 {
     auto requireCapability = [&](Capability capability, const std::string& contributionKind) {
-        if (!hasCapability(grantedCapabilities, capability)) {
+        if (!hasCapability(manifest.capabilitiesRequested, capability)) {
             throw ModuleManagerException(
                 ModuleManagerError::CapabilityDenied,
                 "UI contribution requires capability \"" + to_string(capability) +
-                    "\": module " + quoteDiagnosticValue(moduleID) +
+                    "\": module " + quoteDiagnosticValue(manifest.moduleID) +
                     " attempted " + contributionKind);
         }
     };
@@ -627,6 +739,97 @@ void ModuleManager::validateUIContributions(
 
     if (contributions.themeMask.has_value()) {
         requireCapability(Capability::UIThemeMask, "theme mask contribution");
+    }
+
+    if (!usesDeclaredUIRequirements(manifest)) {
+        return;
+    }
+
+    if (!manifest.runtimeRequirements.ui.has_value()) {
+        throw ModuleManagerException(
+            ModuleManagerError::RequirementValidationFailed,
+            "UI module " + quoteDiagnosticValue(manifest.moduleID) +
+                " must declare runtimeRequirements.ui");
+    }
+
+    const auto& ui = manifest.runtimeRequirements.ui.value();
+
+    if (contributions.themeMask.has_value() && ui.themeIDs.empty()) {
+        throw ModuleManagerException(
+            ModuleManagerError::RequirementValidationFailed,
+            "UI theme mask requires at least one declared runtimeRequirements.ui.themeIDs value for module " +
+                quoteDiagnosticValue(manifest.moduleID));
+    }
+
+    for (const auto& item : contributions.toolbarItems) {
+        requireDeclaredUIID(
+            ui.toolbarItemIDs,
+            item.itemID,
+            "toolbar itemID",
+            "runtimeRequirements.ui.toolbarItemIDs",
+            manifest.moduleID);
+
+        std::visit([&ui, &manifest](const auto& action) {
+            using Action = std::decay_t<decltype(action)>;
+            if constexpr (std::is_same_v<Action, OpenOverlayAction>) {
+                requireDeclaredUIID(
+                    ui.routeIDs,
+                    action.routeID,
+                    "toolbar routeID",
+                    "runtimeRequirements.ui.routeIDs",
+                    manifest.moduleID);
+            }
+        }, item.action);
+    }
+
+    for (const auto& injection : contributions.viewInjections) {
+        requireDeclaredUIID(
+            ui.viewIDs,
+            injection.viewID,
+            "view injection viewID",
+            "runtimeRequirements.ui.viewIDs",
+            manifest.moduleID);
+        requireDeclaredUIID(
+            ui.slotIDs,
+            injection.slot,
+            "view injection slot",
+            "runtimeRequirements.ui.slotIDs",
+            manifest.moduleID);
+    }
+
+    if (!contributions.overlaySchema.has_value()) {
+        return;
+    }
+
+    const auto& overlay = contributions.overlaySchema.value();
+    for (const auto& pointer : overlay.navigationPointers) {
+        requireDeclaredUIID(
+            ui.pointerIDs,
+            pointer.pointerID,
+            "navigation pointerID",
+            "runtimeRequirements.ui.pointerIDs",
+            manifest.moduleID);
+    }
+
+    for (const auto& route : overlay.overlayRoutes) {
+        requireDeclaredUIID(
+            ui.routeIDs,
+            route.routeID,
+            "overlay routeID",
+            "runtimeRequirements.ui.routeIDs",
+            manifest.moduleID);
+
+        std::visit([&ui, &manifest](const auto& destination) {
+            using Destination = std::decay_t<decltype(destination)>;
+            if constexpr (std::is_same_v<Destination, ModuleOverlayDestination>) {
+                requireDeclaredUIID(
+                    ui.viewIDs,
+                    destination.viewID,
+                    "module overlay viewID",
+                    "runtimeRequirements.ui.viewIDs",
+                    manifest.moduleID);
+            }
+        }, route.destination);
     }
 }
 

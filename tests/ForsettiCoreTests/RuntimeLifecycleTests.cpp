@@ -112,6 +112,47 @@ namespace {
         };
     }
 
+    ModuleManifest makeV11UIManifest(
+        const std::string& moduleID,
+        const std::string& displayName,
+        const std::string& entryPoint,
+        std::vector<Capability> capabilities,
+        ModuleUIRequirements uiRequirements) {
+        auto manifest = makeManifest(
+            moduleID,
+            displayName,
+            ModuleType::UI,
+            entryPoint,
+            SemVer{0, 1, 0},
+            std::move(capabilities));
+        manifest.schemaVersion = "1.1";
+        manifest.manifestTemplateVersion = ManifestTemplateVersion::V1_1;
+        manifest.defaultModuleRole = DefaultModuleRole::UI;
+        manifest.runtimeRequirements.ui = std::move(uiRequirements);
+        return manifest;
+    }
+
+    ModuleManifest makeV11ServiceManifest(
+        const std::string& moduleID,
+        const std::string& displayName,
+        const std::string& entryPoint,
+        std::vector<Capability> capabilities = {},
+        std::vector<ModuleIORequirement> ioRequirements = {},
+        ModuleDataIsolation dataIsolation = {}) {
+        auto manifest = makeManifest(
+            moduleID,
+            displayName,
+            ModuleType::Service,
+            entryPoint,
+            SemVer{0, 1, 0},
+            std::move(capabilities));
+        manifest.schemaVersion = "1.1";
+        manifest.manifestTemplateVersion = ManifestTemplateVersion::V1_1;
+        manifest.runtimeRequirements.io = std::move(ioRequirements);
+        manifest.runtimeRequirements.dataIsolation = std::move(dataIsolation);
+        return manifest;
+    }
+
     UIContributions makeToolbarContributions(const std::string& itemID) {
         UIContributions contributions;
         contributions.toolbarItems.push_back(ToolbarItemDescriptor{
@@ -163,6 +204,14 @@ namespace {
         return contributions;
     }
 
+    UIContributions makeThemeContributions(const std::string& key, const std::string& value) {
+        UIContributions contributions;
+        contributions.themeMask = ThemeMask{
+            .tokens = {ThemeToken{.key = key, .value = value}}
+        };
+        return contributions;
+    }
+
     struct TrackingUIModuleState {
         bool started = false;
         int startCount = 0;
@@ -193,7 +242,7 @@ namespace {
         ModuleDescriptor descriptor() const override { return desc_; }
         ModuleManifest manifest() const override { return manifest_; }
 
-        void start(ForsettiContext& /*ctx*/) override {
+        void start(IForsettiModuleContext& /*ctx*/) override {
             ++state_->startCount;
             state_->started = true;
             if (throwOnStart_) {
@@ -201,7 +250,7 @@ namespace {
             }
         }
 
-        void stop(ForsettiContext& /*ctx*/) override {
+        void stop(IForsettiModuleContext& /*ctx*/) override {
             ++state_->stopCount;
             state_->started = false;
         }
@@ -231,6 +280,26 @@ namespace {
                     entryPoint,
                     SemVer{0, 1, 0},
                     capabilities);
+                return std::make_unique<TrackingUIModule>(
+                    desc, manifest, contributions, state, throwOnStart);
+            });
+    }
+
+    void registerTrackingUIModuleWithManifest(
+        ModuleRegistry& registry,
+        ModuleManifest manifest,
+        UIContributions contributions,
+        std::shared_ptr<TrackingUIModuleState> state,
+        bool throwOnStart = false) {
+        registry.registerModule(
+            manifest.entryPoint,
+            [manifest = std::move(manifest), contributions = std::move(contributions),
+             state = std::move(state), throwOnStart]() -> std::unique_ptr<IForsettiModule> {
+                auto desc = makeDescriptor(
+                    manifest.moduleID,
+                    manifest.displayName,
+                    manifest.moduleType,
+                    manifest.moduleVersion);
                 return std::make_unique<TrackingUIModule>(
                     desc, manifest, contributions, state, throwOnStart);
             });
@@ -280,6 +349,7 @@ namespace {
         std::shared_ptr<ForsettiContext> context;
         std::shared_ptr<CompatibilityChecker> checker;
         std::shared_ptr<RecordingLogger> logger;
+        std::shared_ptr<ModuleRegistrationService> registrationService;
 
         RuntimeTestFixture() {
             entitlements = std::make_shared<MockEntitlementProvider>();
@@ -296,11 +366,18 @@ namespace {
 
             auto policy = std::make_shared<AllowAllCapabilityPolicy>();
             checker = std::make_shared<CompatibilityChecker>(ForsettiVersion::current, policy);
+            registrationService = ModuleRegistrationService::makeInMemory();
         }
 
         std::unique_ptr<ModuleManager> makeModuleManager(ModuleRegistry registry) {
             return std::make_unique<ModuleManager>(
-                std::move(registry), checker, entitlements, store, surfaceManager, context);
+                std::move(registry),
+                checker,
+                entitlements,
+                store,
+                surfaceManager,
+                context,
+                registrationService);
         }
     };
 }
@@ -384,6 +461,123 @@ public:
         const auto& manifests = runtime.moduleManager().manifestsByID();
         Assert::AreEqual(size_t(1), manifests.size());
         Assert::IsTrue(manifests.count("com.test.service") > 0);
+    }
+
+    TEST_METHOD(Runtime_BootRegistersDiscoveredMetadataWithoutInstantiatingModule)
+    {
+        RuntimeTestFixture fix;
+        TempRuntimeDir dir;
+        dir.writeManifest("service.json", makeServiceManifestJSON());
+
+        ModuleRegistry registry;
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+
+        const auto records = runtime.moduleManager().registeredModules();
+        Assert::AreEqual(size_t(1), records.size());
+        Assert::AreEqual(std::string("com.test.service"), records[0].moduleID);
+        Assert::IsTrue(records[0].confirmed);
+    }
+
+    TEST_METHOD(Runtime_BootRejectsStaleRegistration)
+    {
+        RuntimeTestFixture fix;
+        TempRuntimeDir dir;
+
+        auto originalManifest = makeManifest(
+            "com.test.service",
+            "Original Service",
+            ModuleType::Service,
+            "TestServiceModule");
+        fix.registrationService->confirmDiscoveredManifest(originalManifest);
+
+        auto changed = makeServiceManifestJSON();
+        changed["displayName"] = "Changed Service";
+        dir.writeManifest("service.json", changed);
+
+        ModuleRegistry registry;
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        Assert::ExpectException<std::runtime_error>([&runtime]() {
+            runtime.boot();
+        });
+    }
+
+    TEST_METHOD(Runtime_ActivationFailsWhenRegistrationIsMissing)
+    {
+        RuntimeTestFixture fix;
+        TempRuntimeDir dir;
+        dir.writeManifest("service.json", makeServiceManifestJSON());
+
+        ModuleRegistry registry;
+        registry.registerModule("TestServiceModule", []() -> std::unique_ptr<IForsettiModule> {
+            auto desc = ModuleDescriptor{
+                .moduleID = "com.test.service", .displayName = "Test Service",
+                .version = SemVer{0,1,0}, .type = ModuleType::Service};
+            auto manifest = ModuleManifest{
+                .schemaVersion = "1.0", .moduleID = "com.test.service",
+                .displayName = "Test Service", .moduleVersion = SemVer{0,1,0},
+                .moduleType = ModuleType::Service,
+                .supportedPlatforms = {Platform::Windows},
+                .minForsettiVersion = SemVer{0,1,0},
+                .capabilitiesRequested = {},
+                .entryPoint = "TestServiceModule"};
+            return std::make_unique<StubForsettiModule>(desc, manifest);
+        });
+
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+        fix.registrationService->reconcileRemovedManifests({});
+
+        expectModuleManagerError([&runtime]() {
+            runtime.activateModule("com.test.service");
+        }, ModuleManagerError::RegistrationMissing);
+    }
+
+    TEST_METHOD(Runtime_ActivationFailsWhenRegistrationIsUnconfirmed)
+    {
+        RuntimeTestFixture fix;
+        TempRuntimeDir dir;
+        dir.writeManifest("service.json", makeServiceManifestJSON());
+
+        ModuleRegistry registry;
+        registry.registerModule("TestServiceModule", []() -> std::unique_ptr<IForsettiModule> {
+            auto desc = ModuleDescriptor{
+                .moduleID = "com.test.service", .displayName = "Test Service",
+                .version = SemVer{0,1,0}, .type = ModuleType::Service};
+            auto manifest = ModuleManifest{
+                .schemaVersion = "1.0", .moduleID = "com.test.service",
+                .displayName = "Test Service", .moduleVersion = SemVer{0,1,0},
+                .moduleType = ModuleType::Service,
+                .supportedPlatforms = {Platform::Windows},
+                .minForsettiVersion = SemVer{0,1,0},
+                .capabilitiesRequested = {},
+                .entryPoint = "TestServiceModule"};
+            return std::make_unique<StubForsettiModule>(desc, manifest);
+        });
+
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+        fix.registrationService->registerDiscoveredManifest(makeManifest(
+            "com.test.service",
+            "Test Service",
+            ModuleType::Service,
+            "TestServiceModule"));
+
+        expectModuleManagerError([&runtime]() {
+            runtime.activateModule("com.test.service");
+        }, ModuleManagerError::RegistrationUnconfirmed);
     }
 
     TEST_METHOD(Runtime_ActivateAndDeactivateModule)
@@ -913,6 +1107,154 @@ public:
         Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.ui"));
         Assert::IsFalse(state->started);
         Assert::AreEqual(size_t(0), fix.surfaceManager->currentToolbarItems().size());
+    }
+
+    TEST_METHOD(Runtime_ActivationFailsWhenRequiredIOProviderMissing)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.storage"});
+
+        auto manifest = makeV11ServiceManifest(
+            "com.test.storage",
+            "Storage Service",
+            "StorageModule",
+            {Capability::Storage},
+            {ModuleIORequirement{
+                .requirementID = "storage.required",
+                .kind = ModuleIOKind::Storage,
+                .access = ModuleIOAccess::ReadWrite,
+                .required = true
+            }});
+
+        TempRuntimeDir dir;
+        dir.writeManifest("storage.json", nlohmann::json(manifest));
+
+        ModuleRegistry registry;
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+
+        const auto message = expectModuleManagerErrorMessage([&runtime]() {
+            runtime.activateModule("com.test.storage");
+        }, ModuleManagerError::RequirementValidationFailed);
+
+        assertContains(message, "storage.required");
+        Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.storage"));
+    }
+
+    TEST_METHOD(Runtime_ActivationFailsWhenRequiredDefaultRoleMissing)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.consumer"});
+
+        auto manifest = makeV11ServiceManifest(
+            "com.test.consumer",
+            "Consumer Service",
+            "ConsumerModule",
+            {},
+            {},
+            ModuleDataIsolation{
+                .requiredDefaultRoles = {DefaultModuleRole::SharedDatabase}
+            });
+
+        TempRuntimeDir dir;
+        dir.writeManifest("consumer.json", nlohmann::json(manifest));
+
+        ModuleRegistry registry;
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+
+        const auto message = expectModuleManagerErrorMessage([&runtime]() {
+            runtime.activateModule("com.test.consumer");
+        }, ModuleManagerError::RequirementValidationFailed);
+
+        assertContains(message, "shared_database");
+        Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.consumer"));
+    }
+
+    TEST_METHOD(Runtime_V11UIContributionIDsMustBeDeclared)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.ui"});
+
+        auto manifest = makeV11UIManifest(
+            "com.test.ui",
+            "Test UI",
+            "TestUIModule",
+            {Capability::ToolbarItems},
+            ModuleUIRequirements{
+                .toolbarItemIDs = {"declared-toolbar"}
+            });
+
+        TempRuntimeDir dir;
+        dir.writeManifest("ui.json", nlohmann::json(manifest));
+
+        auto state = std::make_shared<TrackingUIModuleState>();
+        ModuleRegistry registry;
+        registerTrackingUIModuleWithManifest(
+            registry,
+            manifest,
+            makeToolbarContributions("undeclared-toolbar"),
+            state);
+
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+
+        const auto message = expectModuleManagerErrorMessage([&runtime]() {
+            runtime.activateModule("com.test.ui");
+        }, ModuleManagerError::RequirementValidationFailed);
+
+        assertContains(message, "runtimeRequirements.ui.toolbarItemIDs");
+        Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.ui"));
+        Assert::IsFalse(state->started);
+        Assert::AreEqual(size_t(0), fix.surfaceManager->currentToolbarItems().size());
+    }
+
+    TEST_METHOD(Runtime_V11DeclaredThemeMaskIsPreserved)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.ui"});
+
+        auto manifest = makeV11UIManifest(
+            "com.test.ui",
+            "Test UI",
+            "TestUIModule",
+            {Capability::UIThemeMask},
+            ModuleUIRequirements{
+                .themeIDs = {"test-theme"}
+            });
+
+        TempRuntimeDir dir;
+        dir.writeManifest("ui.json", nlohmann::json(manifest));
+
+        auto state = std::make_shared<TrackingUIModuleState>();
+        ModuleRegistry registry;
+        registerTrackingUIModuleWithManifest(
+            registry,
+            manifest,
+            makeThemeContributions("accent", "blue"),
+            state);
+
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)),
+            fix.entitlements, fix.eventBus, dir.path());
+
+        runtime.boot();
+        runtime.activateModule("com.test.ui");
+
+        const auto& themeMask = fix.surfaceManager->currentThemeMask();
+        Assert::IsTrue(themeMask.has_value());
+        Assert::AreEqual(size_t(1), themeMask->tokens.size());
+        Assert::AreEqual(std::string("accent"), themeMask->tokens[0].key);
+        Assert::AreEqual(std::string("blue"), themeMask->tokens[0].value);
     }
 
     TEST_METHOD(Runtime_UISwitchReplacesActiveModuleAndSurface)

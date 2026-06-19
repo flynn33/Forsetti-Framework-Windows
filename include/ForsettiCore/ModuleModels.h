@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ForsettiCore/ModuleRequirements.h"
 #include "ForsettiCore/SemVer.h"
 #include <nlohmann/json.hpp>
 
@@ -51,12 +52,18 @@ enum class Capability {
     Storage,
     SecureStorage,
     FileExport,
+    CryptoUtilities,
     Telemetry,
     RoutingOverlay,
     ToolbarItems,
     ViewInjection,
     UIThemeMask,
-    EventPublishing
+    EventPublishing,
+    SharedDatabase,
+    Authentication,
+    Diagnostics,
+    API,
+    Security
 };
 
 std::string to_string(Capability capability);
@@ -93,10 +100,13 @@ struct ModuleManifest final {
     std::vector<Capability> capabilitiesRequested;
     std::optional<std::string> iapProductID;
     std::string entryPoint;
+    ManifestTemplateVersion manifestTemplateVersion{ManifestTemplateVersion::V1_0};
+    std::optional<DefaultModuleRole> defaultModuleRole;
+    ModuleRuntimeRequirements runtimeRequirements{};
 
-    /// Validates that the schemaVersion is "1.0".
+    /// Validates that the schemaVersion is supported by this runtime.
     [[nodiscard]] bool isSchemaValid() const noexcept {
-        return schemaVersion == "1.0";
+        return schemaVersion == "1.0" || schemaVersion == "1.1";
     }
 
     bool operator==(const ModuleManifest&) const = default;

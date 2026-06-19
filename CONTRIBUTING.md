@@ -1,6 +1,6 @@
 # Contributing to Forsetti Framework - Windows
 
-Thank you for contributing to the Windows implementation of Forsetti. This repository is the Windows C++20 framework baseline with Windows SDK service adapters and a planned WinUI 3 host template, so changes should preserve its modular-runtime contracts, public headers, and validation surfaces.
+Thank you for contributing to the Windows implementation of Forsetti. This repository is the Windows C++20 framework baseline with Windows SDK service adapters, a sealed host composition layer, isolated example modules, and downstream samples, so changes should preserve its modular-runtime contracts, public headers, and validation surfaces.
 
 ## Before You Open A Pull Request
 
@@ -30,8 +30,8 @@ For environments where CMake is not on `PATH`, use the Visual Studio bundled CMa
 - Preserve manifest-driven module discovery, compatibility checks, entitlement handling, and UI-surface rules.
 - Preserve capability-scoped service access. New framework services that require a capability should be added to the capability mapping and tested.
 - Preserve source identity protection. Module-scoped contexts assign source module IDs; callers do not provide their own source identity.
-- Treat `ui_theme_mask` as reserved framework presentation policy unless the owner explicitly changes that contract.
-- Follow the coding and dependency constraints in `agentic-coding-policy.json` and `forsetti-instructions.json`.
+- Treat `ui_theme_mask` as limited to declared, policy-approved UI theme IDs while keeping framework host chrome framework-owned.
+- Follow the coding and dependency constraints in `implementation-policy.json` and `framework-policy.json`.
 
 ## Documentation Expectations
 
@@ -43,4 +43,4 @@ For environments where CMake is not on `PATH`, use the Visual Studio bundled CMa
 
 ## Discussions
 
-GitHub Discussions are automated with repo-grounded technical, support, and framework/governance agents. Those agents answer only from repository-tracked sources, so documentation updates directly improve discussion coverage.
+GitHub Discussions are automated with repo-grounded technical, support, and framework/governance responders. Those responders answer only from repository-tracked sources, so documentation updates directly improve discussion coverage.
