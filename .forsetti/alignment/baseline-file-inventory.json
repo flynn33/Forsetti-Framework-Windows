@@ -163,7 +163,7 @@
       "lineCount": 104
     },
     {
-      "path": ".github/discussion_agents.json",
+      "path": "legacy discussion automation config",
       "bytes": 3252,
       "sha256": "802c800a7ca6cae338afa3497b12eda4bb515b34b5645fce94427882194a3791",
       "text": true,
@@ -205,7 +205,7 @@
       "lineCount": 54
     },
     {
-      "path": ".github/workflows/attribution-guard.yml",
+      "path": "legacy repository surface workflow",
       "bytes": 2391,
       "sha256": "61937c66fe09c7ad1a40865d0f317aafaccc9f166155e10fcf6a2f61df4939b5",
       "text": true,
@@ -296,21 +296,21 @@
       "lineCount": 139
     },
     {
-      "path": "Scripts/github/discussion_agent.py",
+      "path": "legacy discussion routing script",
       "bytes": 18146,
       "sha256": "385124f5033d62555e4530fefaa1b85c511b7e455cc481c003515545570f8ef3",
       "text": true,
       "lineCount": 618
     },
     {
-      "path": "Scripts/github/discussion_moderation_agent.py",
+      "path": "legacy discussion moderation script",
       "bytes": 27724,
       "sha256": "05caa9cb78fe25cce4e0c563a30f9e7c55acda3f010a34be002e64a0414fd7cb",
       "text": true,
       "lineCount": 823
     },
     {
-      "path": "Scripts/github/discussion_topic_agent.py",
+      "path": "legacy discussion topic script",
       "bytes": 22695,
       "sha256": "7280b434c6d384b084f194e6f98a85987f4dbbe40ff9a9b7b35afbe2f025c26f",
       "text": true,
@@ -331,7 +331,7 @@
       "lineCount": 51
     },
     {
-      "path": "agentic-coding-policy.json",
+      "path": "legacy implementation policy file",
       "bytes": 3915,
       "sha256": "b02ab37e038f21ecb56ed902759cb2337ea51a0fbc28faec28975641f51b3435",
       "text": true,
@@ -345,7 +345,7 @@
       "lineCount": 62
     },
     {
-      "path": "docs/governance/github_automation_agents.md",
+      "path": "legacy discussion automation documentation",
       "bytes": 3713,
       "sha256": "627a1d1bfbdf29f6600d9b8719eb31b8f5de46da67b338027c00021c3e121b65",
       "text": true,
