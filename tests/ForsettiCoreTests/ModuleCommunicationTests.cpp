@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <stdexcept>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace Forsetti;
@@ -421,8 +422,29 @@ public:
 
         auto storage = ctx->services()->resolve<IStorageService>();
         Assert::IsNotNull(storage.get());
-        Assert::IsTrue(storage == expected);
+        Assert::IsFalse(storage == expected);
+        storage->set("profile", "module-value");
+        Assert::IsFalse(expected->get("profile").has_value());
+        Assert::AreEqual(std::string("module-value"), storage->get("profile").value());
         Assert::IsTrue(logger->entries.empty());
+    }
+
+    TEST_METHOD(ScopedServices_StorageRejectsTraversalKeys)
+    {
+        auto services = std::make_shared<ServiceContainer>();
+        services->registerService<IStorageService>(std::make_shared<TestStorageService>());
+        auto ctx = makeScopedTestContext(
+            "source.mod",
+            {Capability::Storage},
+            nullptr,
+            services);
+
+        auto storage = ctx->services()->resolve<IStorageService>();
+        Assert::IsNotNull(storage.get());
+
+        Assert::ExpectException<std::invalid_argument>([&storage]() {
+            storage->set("..\\other", "value");
+        });
     }
 
     TEST_METHOD(ScopedServices_SecureStorageDeniedWithoutCapability)
@@ -452,8 +474,7 @@ public:
             "source.mod",
             {Capability::Storage, Capability::EventPublishing});
 
-        Assert::IsTrue(ctx->moduleID().has_value());
-        Assert::AreEqual(std::string("source.mod"), ctx->moduleID().value());
+        Assert::AreEqual(std::string("source.mod"), ctx->moduleID());
         Assert::IsTrue(ctx->grantedCapabilities().contains(Capability::Storage));
         Assert::IsTrue(ctx->grantedCapabilities().contains(Capability::EventPublishing));
     }

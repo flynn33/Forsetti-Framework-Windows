@@ -1,0 +1,134 @@
+{
+  "repository": "flynn33/Forsetti-Framework-Windows",
+  "branch": "alignment/windows-runtime-boundaries",
+  "baselineCommit": "42738a3772999092b6ef49e49a8a506f853928a6",
+  "currentCommit": "42738a3772999092b6ef49e49a8a506f853928a6",
+  "inventoryFile": ".forsetti/alignment/baseline-file-inventory.json",
+  "trackedFileCount": 117,
+  "trackedLineCount": 15400,
+  "toolchain": {
+    "git": "git version 2.50.1 (Apple Git-155)",
+    "cmake": "blocked: command not found",
+    "ctest": "blocked: command not found",
+    "cl": "blocked: command not found",
+    "pwsh": "blocked: command not found",
+    "VCPKG_ROOT": "blocked: unset"
+  },
+  "currentSourcePreserveItems": [
+    "factory module identity, type, version, and bundled manifest validation",
+    "UI and app interface rejection without service fallback",
+    "capability-scoped service provider",
+    "module-bound message source identity",
+    "UI contribution capability validation",
+    "single-active UI/app switching with rollback protections",
+    "structured restore results and logging",
+    "strict Windows platform parsing",
+    "WinHTTP networking service",
+    "Registry storage service",
+    "DPAPI secure storage service",
+    "constrained local file export service",
+    "duplicate-safe module registry"
+  ],
+  "knownBaselineGaps": [
+    "manifest model remains schema 1.0 only",
+    "durable registration subsystem is absent",
+    "module lifecycle receives broad concrete context",
+    "resolved storage services are not module-namespace wrappers",
+    "default module roles are not first-class runtime concepts",
+    "manifest does not constrain UI IDs or theme ownership",
+    "app module interface does not derive from UI module interface",
+    "SemVer prerelease precedence is incomplete",
+    "HostTemplate target is planned but absent",
+    "example modules are combined in one production target",
+    "repository surface neutralization is pending",
+    "remote validation parity is pending"
+  ],
+  "commands": [
+    {
+      "command": "git remote -v",
+      "exitCode": 0,
+      "summary": "origin fetch/push https://github.com/flynn33/Forsetti-Framework-Windows.git"
+    },
+    {
+      "command": "git status --short --branch",
+      "exitCode": 0,
+      "summary": "## alignment/windows-runtime-boundaries"
+    },
+    {
+      "command": "git rev-parse --abbrev-ref HEAD",
+      "exitCode": 0,
+      "summary": "alignment/windows-runtime-boundaries"
+    },
+    {
+      "command": "git rev-parse HEAD",
+      "exitCode": 0,
+      "summary": "42738a3772999092b6ef49e49a8a506f853928a6"
+    },
+    {
+      "command": "git log -10 --oneline",
+      "exitCode": 0,
+      "summary": "Head is 42738a3 Revise software license terms and conditions"
+    },
+    {
+      "command": "git diff --stat 42738a3772999092b6ef49e49a8a506f853928a6..HEAD",
+      "exitCode": 0,
+      "summary": "No diff from package baseline commit"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "summary": "No whitespace errors"
+    },
+    {
+      "command": "git --version",
+      "exitCode": 0,
+      "summary": "git version 2.50.1 (Apple Git-155)"
+    },
+    {
+      "command": "python3 JSON parse for git ls-files *.json",
+      "exitCode": 0,
+      "summary": "20 tracked JSON files parsed successfully"
+    },
+    {
+      "command": "cmake --version",
+      "exitCode": 127,
+      "summary": "zsh:1: command not found: cmake"
+    },
+    {
+      "command": "cl",
+      "exitCode": 127,
+      "summary": "zsh:1: command not found: cl"
+    },
+    {
+      "command": "pwsh --version",
+      "exitCode": 127,
+      "summary": "zsh:1: command not found: pwsh"
+    },
+    {
+      "command": "printenv VCPKG_ROOT",
+      "exitCode": 1,
+      "summary": "VCPKG_ROOT is unset"
+    },
+    {
+      "command": "cmake --preset debug",
+      "exitCode": 127,
+      "summary": "zsh:1: command not found: cmake"
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "exitCode": 127,
+      "summary": "zsh:1: command not found: cmake"
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "exitCode": 127,
+      "summary": "zsh:1: command not found: ctest"
+    },
+    {
+      "command": "pwsh -NoProfile -File ./Scripts/verify-forsetti-guardrails.ps1",
+      "exitCode": 127,
+      "summary": "zsh:1: command not found: pwsh"
+    }
+  ],
+  "status": "phase_00_recorded_with_external_toolchain_blockers"
+}

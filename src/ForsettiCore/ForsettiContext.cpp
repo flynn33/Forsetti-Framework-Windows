@@ -7,6 +7,26 @@
 
 namespace Forsetti {
 
+namespace {
+
+bool containsCapability(const std::set<Capability>& capabilities, Capability capability)
+{
+    return capabilities.find(capability) != capabilities.end();
+}
+
+std::map<std::string, std::string> sanitizedModulePayload(
+    std::map<std::string, std::string> payload)
+{
+    payload.erase("sourceModuleID");
+    payload.erase("targetModuleID");
+    payload.erase("capability");
+    payload.erase("role");
+    payload.erase("forsetti.internal");
+    return payload;
+}
+
+} // namespace
+
 // ---------------------------------------------------------------------------
 // DefaultModuleCommunicationGuard
 // ---------------------------------------------------------------------------
@@ -57,7 +77,12 @@ std::shared_ptr<IOverlayRouter> ForsettiContext::router() const {
     return router_;
 }
 
-const std::optional<std::string>& ForsettiContext::moduleID() const noexcept {
+const std::string& ForsettiContext::moduleID() const noexcept {
+    static const std::string emptyModuleID;
+    return moduleID_.has_value() ? moduleID_.value() : emptyModuleID;
+}
+
+const std::optional<std::string>& ForsettiContext::scopedModuleID() const noexcept {
     return moduleID_;
 }
 
@@ -98,6 +123,27 @@ void ForsettiContext::publishFrameworkEvent(const ForsettiEvent& event) {
     eventBus_->publish(frameworkEvent);
 }
 
+void ForsettiContext::publishEvent(
+    const std::string& eventType,
+    const std::map<std::string, std::string>& payload)
+{
+    if (!moduleID_.has_value()) {
+        throw ForsettiContextException(ForsettiContextError::UnscopedModuleContext);
+    }
+    if (eventType.starts_with("forsetti.internal.")) {
+        throw ForsettiContextException(ForsettiContextError::ReservedNamespace);
+    }
+    if (!containsCapability(grantedCapabilities_, Capability::EventPublishing)) {
+        throw std::runtime_error("Module event publication requires event_publishing capability.");
+    }
+
+    ForsettiEvent event;
+    event.type = eventType;
+    event.sourceModuleID = moduleID_.value();
+    event.payload = sanitizedModulePayload(payload);
+    eventBus_->publish(event);
+}
+
 // ---------------------------------------------------------------------------
 // sendModuleMessage — validated module-to-module messaging
 // ---------------------------------------------------------------------------
@@ -119,11 +165,17 @@ void ForsettiContext::sendModuleMessage(const std::string& targetModuleID,
     event.sourceModuleID = sourceModuleID;
 
     // Start with the caller-supplied payload, then inject framework-owned fields.
-    event.payload = payload;
-    event.payload.erase("sourceModuleID");
+    event.payload = sanitizedModulePayload(payload);
     event.payload["targetModuleID"] = targetModuleID;
 
     eventBus_->publish(event);
+}
+
+void ForsettiContext::sendMessage(const std::string& targetModuleID,
+                                  const std::string& eventType,
+                                  const std::map<std::string, std::string>& payload)
+{
+    sendModuleMessage(targetModuleID, eventType, payload);
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +196,19 @@ SubscriptionToken ForsettiContext::subscribeToModuleMessages(
 
     auto id = eventBus_->subscribe(eventType, std::move(filteredHandler));
     return SubscriptionToken(eventBus_.get(), id);
+}
+
+SubscriptionToken ForsettiContext::subscribeToMessages(
+    const std::string& eventType,
+    std::function<void(const ForsettiEvent&)> handler)
+{
+    if (!moduleID_.has_value()) {
+        throw ForsettiContextException(ForsettiContextError::UnscopedModuleContext);
+    }
+    if (eventType.starts_with("forsetti.internal.")) {
+        throw ForsettiContextException(ForsettiContextError::ReservedNamespace);
+    }
+    return subscribeToModuleMessages(moduleID_.value(), eventType, std::move(handler));
 }
 
 // ---------------------------------------------------------------------------

@@ -64,12 +64,18 @@ std::string to_string(Capability capability) {
         case Capability::Storage:         return "storage";
         case Capability::SecureStorage:   return "secure_storage";
         case Capability::FileExport:      return "file_export";
+        case Capability::CryptoUtilities: return "crypto_utilities";
         case Capability::Telemetry:       return "telemetry";
         case Capability::RoutingOverlay:  return "routing_overlay";
         case Capability::ToolbarItems:    return "toolbar_items";
         case Capability::ViewInjection:   return "view_injection";
         case Capability::UIThemeMask:     return "ui_theme_mask";
         case Capability::EventPublishing: return "event_publishing";
+        case Capability::SharedDatabase:  return "shared_database";
+        case Capability::Authentication:  return "authentication";
+        case Capability::Diagnostics:     return "diagnostics";
+        case Capability::API:             return "api";
+        case Capability::Security:        return "security";
     }
     throw std::invalid_argument("Unknown Capability value");
 }
@@ -79,12 +85,18 @@ Capability capabilityFromString(const std::string& str) {
     if (str == "storage")          return Capability::Storage;
     if (str == "secure_storage")   return Capability::SecureStorage;
     if (str == "file_export")      return Capability::FileExport;
+    if (str == "crypto_utilities") return Capability::CryptoUtilities;
     if (str == "telemetry")        return Capability::Telemetry;
     if (str == "routing_overlay")  return Capability::RoutingOverlay;
     if (str == "toolbar_items")    return Capability::ToolbarItems;
     if (str == "view_injection")   return Capability::ViewInjection;
     if (str == "ui_theme_mask")    return Capability::UIThemeMask;
     if (str == "event_publishing") return Capability::EventPublishing;
+    if (str == "shared_database")  return Capability::SharedDatabase;
+    if (str == "authentication")   return Capability::Authentication;
+    if (str == "diagnostics")      return Capability::Diagnostics;
+    if (str == "api")              return Capability::API;
+    if (str == "security")         return Capability::Security;
     throw std::invalid_argument("Unknown Capability string: " + str);
 }
 
@@ -126,7 +138,9 @@ void to_json(nlohmann::json& j, const ModuleManifest& manifest) {
         {"supportedPlatforms",   manifest.supportedPlatforms},
         {"minForsettiVersion",   manifest.minForsettiVersion},
         {"capabilitiesRequested", manifest.capabilitiesRequested},
-        {"entryPoint",           manifest.entryPoint}
+        {"entryPoint",           manifest.entryPoint},
+        {"manifestTemplateVersion", manifest.manifestTemplateVersion},
+        {"runtimeRequirements",  manifest.runtimeRequirements}
     };
 
     if (manifest.maxForsettiVersion.has_value()) {
@@ -139,6 +153,12 @@ void to_json(nlohmann::json& j, const ModuleManifest& manifest) {
         j["iapProductID"] = manifest.iapProductID.value();
     } else {
         j["iapProductID"] = nullptr;
+    }
+
+    if (manifest.defaultModuleRole.has_value()) {
+        j["defaultModuleRole"] = manifest.defaultModuleRole.value();
+    } else {
+        j["defaultModuleRole"] = nullptr;
     }
 }
 
@@ -163,6 +183,24 @@ void from_json(const nlohmann::json& j, ModuleManifest& manifest) {
         manifest.iapProductID = j.at("iapProductID").get<std::string>();
     } else {
         manifest.iapProductID = std::nullopt;
+    }
+
+    if (j.contains("manifestTemplateVersion") && !j.at("manifestTemplateVersion").is_null()) {
+        manifest.manifestTemplateVersion = j.at("manifestTemplateVersion").get<ManifestTemplateVersion>();
+    } else {
+        manifest.manifestTemplateVersion = ManifestTemplateVersion::V1_0;
+    }
+
+    if (j.contains("defaultModuleRole") && !j.at("defaultModuleRole").is_null()) {
+        manifest.defaultModuleRole = j.at("defaultModuleRole").get<DefaultModuleRole>();
+    } else {
+        manifest.defaultModuleRole = std::nullopt;
+    }
+
+    if (j.contains("runtimeRequirements") && !j.at("runtimeRequirements").is_null()) {
+        manifest.runtimeRequirements = j.at("runtimeRequirements").get<ModuleRuntimeRequirements>();
+    } else {
+        manifest.runtimeRequirements = ModuleRuntimeRequirements{};
     }
 }
 

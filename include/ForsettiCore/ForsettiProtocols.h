@@ -11,7 +11,7 @@
 
 namespace Forsetti {
 
-class ForsettiContext;
+class IForsettiModuleContext;
 
 // ---------------------------------------------------------------------------
 // IForsettiModule – base interface for every module in the framework.
@@ -21,8 +21,8 @@ public:
     virtual ModuleDescriptor descriptor() const = 0;
     virtual ModuleManifest   manifest()   const = 0;
 
-    virtual void start(ForsettiContext& context) = 0;
-    virtual void stop(ForsettiContext& context)  = 0;
+    virtual void start(IForsettiModuleContext& context) = 0;
+    virtual void stop(IForsettiModuleContext& context)  = 0;
 
     virtual ~IForsettiModule() = default;
 };
@@ -40,7 +40,7 @@ public:
 // ---------------------------------------------------------------------------
 // IForsettiAppModule – marker interface for application-level modules.
 // ---------------------------------------------------------------------------
-class IForsettiAppModule : public IForsettiModule {
+class IForsettiAppModule : public IForsettiUIModule {
 public:
     ~IForsettiAppModule() override = default;
 };

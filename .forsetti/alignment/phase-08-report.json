@@ -1,0 +1,39 @@
+{
+  "phase": "08",
+  "name": "guardrails-docs-and-release-alignment",
+  "timestampUtc": "2026-06-19T13:16:25Z",
+  "status": "completed-with-native-toolchain-blocked",
+  "changes": [
+    "Removed root-level include_directories state from the top-level CMake file.",
+    "Updated architecture, dependency, pull request compatibility, and manifest guardrail scripts for HostTemplate, split example modules, templates, and samples.",
+    "Updated README, CONTRIBUTING, framework-policy.json, implementation-policy.json, CHANGELOG, and discussion automation config for the implemented alignment state.",
+    "Bumped authoritative pre-1.0 version surfaces from 0.1.0 to 0.2.0.",
+    "Documented manifest 1.1, runtime requirements, registration, default roles, scoped storage, HostTemplate, demo, and template additions."
+  ],
+  "validation": [
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "python3 -m py_compile discussion scripts",
+      "result": "passed"
+    },
+    {
+      "command": "discussion router/moderator/topic config validation",
+      "result": "passed"
+    },
+    {
+      "command": "rg stale target/planned-host/attribution terms",
+      "result": "passed: no matches"
+    },
+    {
+      "command": "pwsh -NoProfile -File ./Scripts/verify-forsetti-guardrails.ps1",
+      "result": "blocked: pwsh not installed"
+    }
+  ],
+  "knownLimitations": [
+    "Full guardrail wrapper cannot run without PowerShell.",
+    "Native CI parity cannot be proven from this macOS environment."
+  ]
+}

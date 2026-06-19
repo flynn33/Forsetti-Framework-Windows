@@ -4,7 +4,7 @@ Forsetti Framework - Windows is a proprietary modular runtime framework for Wind
 
 The framework centers on a compatibility-governed module model: modules declare identity, platform support, capabilities, entitlement requirements, and optional UI contributions. The runtime validates those declarations before activation, scopes module access to approved services, and keeps UI surface state under framework control.
 
-The WinUI 3 host application template is planned and is not yet a repository target. Current repository targets build the core runtime, Windows platform adapters, example modules, and native test suites.
+The repository now includes the sealed `ForsettiHostTemplate` composition layer, Windows platform adapters, isolated example modules, downstream demo wiring, module templates, and native test suites.
 
 ## What Forsetti Provides
 
@@ -23,33 +23,35 @@ The WinUI 3 host application template is planned and is not yet a repository tar
 
 ```mermaid
 flowchart TB
-    Host["ForsettiHostTemplate\nplanned WinUI 3 host layer"]
+    Host["ForsettiHostTemplate\nsealed host composition layer"]
     Platform["ForsettiPlatform\nWindows SDK service adapters"]
     Core["ForsettiCore\npure C++20 runtime"]
-    Examples["ForsettiModulesExample\nreference modules"]
+    Examples["ForsettiExample*Module\nisolated reference modules"]
+    Demo["ForsettiDemo\ndownstream sample"]
     Tests["Native test suites\nCore, Platform, Architecture"]
 
     Host --> Platform
     Host --> Core
     Platform --> Core
     Examples --> Core
+    Demo --> Host
+    Demo --> Examples
     Tests --> Core
     Tests --> Platform
 
-    classDef planned fill:#fff7e6,stroke:#b7791f,color:#3d2b12;
     classDef runtime fill:#eef6ff,stroke:#2b6cb0,color:#102a43;
     classDef reference fill:#f0fff4,stroke:#2f855a,color:#123524;
-    class Host planned;
-    class Platform,Core runtime;
-    class Examples,Tests reference;
+    class Platform,Core,Host runtime;
+    class Examples,Demo,Tests reference;
 ```
 
 The hard dependency rule is one-way only:
 
 - `ForsettiCore` depends on nothing in the repository.
 - `ForsettiPlatform` depends on `ForsettiCore`.
-- `ForsettiModulesExample` depends on `ForsettiCore`.
-- The planned `ForsettiHostTemplate` will depend on `ForsettiCore` and `ForsettiPlatform`.
+- `ForsettiHostTemplate` depends on `ForsettiCore` and `ForsettiPlatform`.
+- `ForsettiExampleServiceModule`, `ForsettiExampleUIModule`, and `ForsettiExampleAppModule` each depend on `ForsettiCore` and not on each other.
+- `samples/ForsettiDemo` is downstream demonstration code and may compose the host and example modules.
 - Reverse and lateral includes are blocked by tests and scripts.
 
 ## Runtime Flow
@@ -71,6 +73,7 @@ sequenceDiagram
     Manager->>Loader: loadManifests(path)
     Loader-->>Manager: ModuleManifest list
     Runtime->>Manager: restorePersistedActivation()
+    Manager->>Manager: confirm registration and runtime requirements
     Manager->>Compat: checkCompatibility(manifest)
     Manager->>Registry: resolve entryPoint factory
     Registry-->>Manager: module instance
@@ -93,12 +96,18 @@ Activation fails before `start()` when compatibility, entitlement, capability, o
 | `src/ForsettiCore` | Core runtime implementation with no platform dependencies |
 | `include/ForsettiPlatform` | Public Windows platform adapter contracts |
 | `src/ForsettiPlatform` | Windows SDK implementations for networking, storage, secure storage, file export, and telemetry |
-| `src/ForsettiModulesExample` | Reference service/UI modules and manifest resources |
+| `include/ForsettiHostTemplate` | Public host controller, bootstrap, overlay router, state, and surface adapter contracts |
+| `src/ForsettiHostTemplate` | Sealed host composition implementation |
+| `src/ForsettiExampleServiceModule` | Isolated reference service module and manifest |
+| `src/ForsettiExampleUIModule` | Isolated reference UI module and manifest |
+| `src/ForsettiExampleAppModule` | Isolated reference app module and manifest |
+| `samples/ForsettiDemo` | Downstream demonstration composition root |
+| `templates` | Windows module and host starter templates |
 | `tests` | Native CppUnitTest suites surfaced through CTest |
 | `Scripts` | Local guardrail, compatibility, manifest, dependency, and discussion automation scripts |
 | `.github` | Pull request template, label/release metadata, discussion automation config, and remote marker workflow |
 | `docs/governance` | Repository-grounded governance and discussion automation documents |
-| `.forsetti/remediation` | Phase evidence and acceptance reports for the completed remediation sequence |
+| `.forsetti/alignment` | Phase evidence and acceptance reports for runtime-boundary alignment work |
 
 ## Build And Test
 
@@ -141,21 +150,40 @@ The wrapper performs:
 
 ## Module Manifest Baseline
 
-Manifests live under `ForsettiManifests` directories and use JSON with exact platform/capability casing:
+Manifests live under `ForsettiManifests` directories and use JSON with exact platform/capability casing. Schema `1.0` remains loadable with safe default runtime requirements; current manifests use schema `1.1`:
 
 ```json
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
+  "manifestTemplateVersion": "1.1",
   "moduleID": "com.forsetti.module.example-service",
   "displayName": "Example Service",
   "moduleVersion": { "major": 0, "minor": 1, "patch": 0, "prerelease": null },
   "moduleType": "service",
   "supportedPlatforms": ["Windows"],
-  "minForsettiVersion": { "major": 0, "minor": 1, "patch": 0, "prerelease": null },
+  "minForsettiVersion": { "major": 0, "minor": 2, "patch": 0, "prerelease": null },
   "maxForsettiVersion": null,
   "capabilitiesRequested": ["storage", "telemetry"],
   "iapProductID": null,
-  "entryPoint": "ExampleServiceModule"
+  "entryPoint": "ExampleServiceModule",
+  "defaultModuleRole": null,
+  "runtimeRequirements": {
+    "io": [
+      {
+        "requirementID": "storage.example-state",
+        "kind": "storage",
+        "access": "read_write",
+        "required": true,
+        "description": "Private example service state."
+      }
+    ],
+    "ui": null,
+    "dataIsolation": {
+      "mode": "private_to_module",
+      "ownedStoreIDs": ["example-service-state"],
+      "requiredDefaultRoles": []
+    }
+  }
 }
 ```
 
@@ -167,13 +195,19 @@ Module-requestable capabilities are:
 - `storage`
 - `secure_storage`
 - `file_export`
+- `crypto_utilities`
 - `telemetry`
 - `routing_overlay`
 - `toolbar_items`
 - `view_injection`
 - `event_publishing`
+- `shared_database`
+- `authentication`
+- `diagnostics`
+- `api`
+- `security`
 
-The runtime also recognizes `ui_theme_mask`, but it is reserved for framework-owned presentation policy. Modules should not request it; UI contribution sanitization strips theme masks from module-provided state.
+The runtime also recognizes `ui_theme_mask` for declared, policy-approved UI theme IDs. Framework host chrome remains framework-owned.
 
 ## Documentation Map
 
@@ -183,10 +217,10 @@ Repository documents:
 - `CHANGELOG.md` - release and notable change history.
 - `CONTRIBUTING.md` - contributor workflow and verification expectations.
 - `wiki.md` - tracked index for the public GitHub Wiki.
-- `docs/governance/github_automation_agents.md` - discussion automation design.
+- `docs/governance/github-discussion-automation.md` - discussion automation design.
 - `docs/governance/discussion_moderation_policy.md` - discussion moderation policy.
-- `agentic-coding-policy.json` - machine-readable coding policy and invariants.
-- `forsetti-instructions.json` - machine-readable framework architecture and API summary.
+- `implementation-policy.json` - machine-readable coding policy and invariants.
+- `framework-policy.json` - machine-readable framework architecture and API summary.
 
 Public Wiki:
 
@@ -194,11 +228,11 @@ Public Wiki:
 
 The Wiki contains detailed pages for architecture, runtime lifecycle, module manifests, capabilities, UI surface behavior, platform services, build/test guardrails, governance, API reference, and roadmap decisions.
 
-## Current Acceptance Status
+## Current Alignment Status
 
-The remediation sequence has completed through final acceptance. Local Windows/MSVC validation passed with the `debug` preset, all three CTest suites passed, repository guardrails passed, and all phase evidence files are present under `.forsetti/remediation`.
+Runtime-boundary alignment evidence is tracked under `.forsetti/alignment`. The canonical local verification path remains `.\Scripts\verify-forsetti-guardrails.ps1` on a Windows/MSVC environment with CMake, CTest, PowerShell, and `VCPKG_ROOT` available.
 
-Remaining owner decisions are tracked in the final acceptance report, including remote build/test parity restoration, vcpkg baseline pinning, planned host-template implementation, theme policy exposure, and general module-originated event publishing.
+Owner decisions and any environment-specific validation gaps are tracked in the final alignment report.
 
 ## Patent Notice
 

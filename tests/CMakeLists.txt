@@ -54,6 +54,7 @@ if(MSVC)
     add_library(ForsettiCoreTests SHARED
         ForsettiCoreTests/SemVerTests.cpp
         ForsettiCoreTests/ManifestLoaderTests.cpp
+        ForsettiCoreTests/ModuleRegistrationTests.cpp
         ForsettiCoreTests/CompatibilityCheckerTests.cpp
         ForsettiCoreTests/ModuleCommunicationTests.cpp
         ForsettiCoreTests/EntitlementProviderTests.cpp

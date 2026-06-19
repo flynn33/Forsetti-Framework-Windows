@@ -1,0 +1,53 @@
+{
+  "phase": "03",
+  "name": "registration-and-startup-confirmation",
+  "timestampUtc": "2026-06-19T12:48:47Z",
+  "status": "completed-with-native-toolchain-blocked",
+  "changes": [
+    "Added Core module registration records, store, digest provider, registration clock, in-memory store, SHA-256 manifest digest provider, and registration service.",
+    "Added deterministic canonical manifest JSON with sorted object keys, preserved array order, explicit null/default fields, and lowercase SHA-256 digest output.",
+    "Integrated registration confirmation into ModuleManager discovery.",
+    "Added activation-time checks for missing, unconfirmed, and stale registration records.",
+    "Exposed registered metadata through ModuleManager without creating module instances.",
+    "Added Windows platform Registry registration store and CNG SHA-256 digest provider adapters.",
+    "Added registration unit tests and runtime registration tests."
+  ],
+  "testsAdded": [
+    "In-memory registration store CRUD.",
+    "Canonical manifest digest stability.",
+    "Semantic manifest changes alter digest.",
+    "Register and confirm manifest state transition.",
+    "Mismatched registration confirmation rejection.",
+    "Removed manifest reconciliation.",
+    "Boot registers discovered metadata without instantiating modules.",
+    "Boot rejects stale registration.",
+    "Activation fails when registration is missing.",
+    "Activation fails when registration is unconfirmed."
+  ],
+  "validation": [
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "cmake --build --preset debug",
+      "result": "blocked: cmake not installed"
+    },
+    {
+      "command": "ctest --preset debug --output-on-failure",
+      "result": "blocked: ctest not installed"
+    }
+  ],
+  "knownLimitations": [
+    "Native compile and test execution still require Windows/MSVC, CMake, CTest, vcpkg, and PowerShell.",
+    "Data isolation wrappers, default-role orchestration, and UI contribution contract ownership continue in later phases."
+  ]
+}

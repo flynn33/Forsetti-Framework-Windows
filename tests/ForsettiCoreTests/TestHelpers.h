@@ -113,8 +113,8 @@ public:
 
     ModuleDescriptor descriptor() const override { return desc_; }
     ModuleManifest manifest() const override { return manifest_; }
-    void start(ForsettiContext& /*ctx*/) override { started_ = true; }
-    void stop(ForsettiContext& /*ctx*/) override { started_ = false; }
+    void start(IForsettiModuleContext& /*ctx*/) override { started_ = true; }
+    void stop(IForsettiModuleContext& /*ctx*/) override { started_ = false; }
     bool isStarted() const { return started_; }
 };
 
@@ -134,8 +134,8 @@ public:
 
     ModuleDescriptor descriptor() const override { return desc_; }
     ModuleManifest manifest() const override { return manifest_; }
-    void start(ForsettiContext& /*ctx*/) override { started_ = true; }
-    void stop(ForsettiContext& /*ctx*/) override { started_ = false; }
+    void start(IForsettiModuleContext& /*ctx*/) override { started_ = true; }
+    void stop(IForsettiModuleContext& /*ctx*/) override { started_ = false; }
     UIContributions uiContributions() const override { return contributions_; }
     bool isStarted() const { return started_; }
 };
@@ -152,8 +152,8 @@ public:
 
     ModuleDescriptor descriptor() const override { return desc_; }
     ModuleManifest manifest() const override { return manifest_; }
-    void start(ForsettiContext& /*ctx*/) override { throw std::runtime_error("module start failed"); }
-    void stop(ForsettiContext& /*ctx*/) override {}
+    void start(IForsettiModuleContext& /*ctx*/) override { throw std::runtime_error("module start failed"); }
+    void stop(IForsettiModuleContext& /*ctx*/) override {}
 };
 
 } // namespace Forsetti::Tests

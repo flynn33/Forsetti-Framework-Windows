@@ -16,7 +16,17 @@ Write-Host "=== PR Compatibility Check ===" -ForegroundColor Cyan
 # --- Check: forsetti.internal.* namespace in module code ---
 Write-Host "`nChecking for reserved namespace usage in module code..." -ForegroundColor Yellow
 
-$moduleFiles = Get-ChildItem -Path "$repoRoot\src\ForsettiModulesExample" -Recurse -Include "*.h", "*.cpp" -ErrorAction SilentlyContinue
+$moduleRoots = @(
+    "$repoRoot\src\ForsettiExampleServiceModule",
+    "$repoRoot\src\ForsettiExampleUIModule",
+    "$repoRoot\src\ForsettiExampleAppModule"
+)
+$moduleFiles = @()
+foreach ($moduleRoot in $moduleRoots) {
+    if (Test-Path $moduleRoot) {
+        $moduleFiles += Get-ChildItem -Path $moduleRoot -Recurse -Include "*.h", "*.cpp" -ErrorAction SilentlyContinue
+    }
+}
 foreach ($file in $moduleFiles) {
     $content = Get-Content $file.FullName -ErrorAction SilentlyContinue
     $lineNum = 0

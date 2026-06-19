@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.1",
+  "manifestTemplateVersion": "1.1",
+  "moduleID": "com.forsetti.module.example-service",
+  "displayName": "Example Service",
+  "moduleVersion": {"major": 0, "minor": 1, "patch": 0, "prerelease": null},
+  "moduleType": "service",
+  "supportedPlatforms": ["Windows"],
+  "minForsettiVersion": {"major": 0, "minor": 2, "patch": 0, "prerelease": null},
+  "maxForsettiVersion": null,
+  "capabilitiesRequested": ["storage", "telemetry", "event_publishing"],
+  "iapProductID": null,
+  "entryPoint": "ExampleServiceModule",
+  "defaultModuleRole": null,
+  "runtimeRequirements": {
+    "io": [
+      {
+        "requirementID": "storage.example-state",
+        "kind": "storage",
+        "access": "read_write",
+        "required": true,
+        "description": "Private example service state."
+      },
+      {
+        "requirementID": "telemetry.example-events",
+        "kind": "telemetry",
+        "access": "emit",
+        "required": false,
+        "description": "Optional example service telemetry."
+      }
+    ],
+    "ui": null,
+    "dataIsolation": {
+      "mode": "private_to_module",
+      "ownedStoreIDs": ["example-service-state"],
+      "requiredDefaultRoles": []
+    }
+  }
+}

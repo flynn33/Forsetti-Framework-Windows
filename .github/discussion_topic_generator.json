@@ -32,7 +32,7 @@
       "source_path": "wiki.md",
       "heading_level": 2,
       "title_prefix": "Wiki Section",
-      "body_intro": "This topic was generated from the repository wiki guide."
+      "body_intro": "This topic was derived from the repository wiki guide."
     },
     {
       "id": "readme_sections",
@@ -40,15 +40,15 @@
       "source_path": "README.md",
       "heading_level": 2,
       "title_prefix": "README Section",
-      "body_intro": "This topic was generated from the framework README."
+      "body_intro": "This topic was derived from the framework README."
     },
     {
       "id": "governance_topics",
       "kind": "markdown_headings",
-      "source_path": "docs/governance/github_automation_agents.md",
+      "source_path": "docs/governance/github-discussion-automation.md",
       "heading_level": 2,
       "title_prefix": "Governance Topic",
-      "body_intro": "This topic was generated from the repository automation governance guide."
+      "body_intro": "This topic was derived from the repository automation governance guide."
     }
   ]
 }

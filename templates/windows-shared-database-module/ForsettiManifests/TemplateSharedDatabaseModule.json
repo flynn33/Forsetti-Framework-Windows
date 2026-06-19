@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.1",
+  "manifestTemplateVersion": "1.1",
+  "moduleID": "com.forsetti.template.shared-database",
+  "displayName": "Template Shared Database Module",
+  "moduleVersion": {"major": 0, "minor": 1, "patch": 0, "prerelease": null},
+  "moduleType": "service",
+  "supportedPlatforms": ["Windows"],
+  "minForsettiVersion": {"major": 0, "minor": 2, "patch": 0, "prerelease": null},
+  "maxForsettiVersion": null,
+  "capabilitiesRequested": ["shared_database"],
+  "iapProductID": null,
+  "entryPoint": "TemplateSharedDatabaseModule",
+  "defaultModuleRole": "shared_database",
+  "runtimeRequirements": {
+    "io": [
+      {
+        "requirementID": "shared_database.template",
+        "kind": "shared_database",
+        "access": "read_write",
+        "required": true
+      }
+    ],
+    "ui": null,
+    "dataIsolation": {
+      "mode": "framework_mediated_shared",
+      "ownedStoreIDs": ["template-shared-database"],
+      "requiredDefaultRoles": []
+    }
+  }
+}

@@ -59,7 +59,7 @@ if (Test-Path $vcpkgPath) {
 # --- R006: CMake link target audit ---
 Write-Host "Checking CMake link targets for layer violations..." -ForegroundColor Yellow
 
-# ForsettiCore must not link ForsettiPlatform, ForsettiHostTemplate, or ForsettiModulesExample
+# ForsettiCore must not link ForsettiPlatform, ForsettiHostTemplate, or example modules
 $coreCMake = Join-Path $repoRoot "src\ForsettiCore\CMakeLists.txt"
 if (Test-Path $coreCMake) {
     $content = Get-Content $coreCMake -Raw
@@ -69,32 +69,40 @@ if (Test-Path $coreCMake) {
     if ($content -match 'target_link_libraries\s*\(\s*ForsettiCore[^)]*ForsettiHostTemplate') {
         $violations += "R006: ForsettiCore/CMakeLists.txt links ForsettiHostTemplate (forbidden)"
     }
-    if ($content -match 'target_link_libraries\s*\(\s*ForsettiCore[^)]*ForsettiModulesExample') {
-        $violations += "R006: ForsettiCore/CMakeLists.txt links ForsettiModulesExample (forbidden)"
+    if ($content -match 'target_link_libraries\s*\(\s*ForsettiCore[^)]*ForsettiExample(Service|UI|App)Module') {
+        $violations += "R006: ForsettiCore/CMakeLists.txt links an example module (forbidden)"
     }
 }
 
-# ForsettiPlatform must not link ForsettiHostTemplate or ForsettiModulesExample
+# ForsettiPlatform must not link ForsettiHostTemplate or example modules
 $platCMake = Join-Path $repoRoot "src\ForsettiPlatform\CMakeLists.txt"
 if (Test-Path $platCMake) {
     $content = Get-Content $platCMake -Raw
     if ($content -match 'target_link_libraries\s*\(\s*ForsettiPlatform[^)]*ForsettiHostTemplate') {
         $violations += "R006: ForsettiPlatform/CMakeLists.txt links ForsettiHostTemplate (forbidden)"
     }
-    if ($content -match 'target_link_libraries\s*\(\s*ForsettiPlatform[^)]*ForsettiModulesExample') {
-        $violations += "R006: ForsettiPlatform/CMakeLists.txt links ForsettiModulesExample (forbidden)"
+    if ($content -match 'target_link_libraries\s*\(\s*ForsettiPlatform[^)]*ForsettiExample(Service|UI|App)Module') {
+        $violations += "R006: ForsettiPlatform/CMakeLists.txt links an example module (forbidden)"
     }
 }
 
-# ForsettiModulesExample must not link ForsettiPlatform or ForsettiHostTemplate
-$exCMake = Join-Path $repoRoot "src\ForsettiModulesExample\CMakeLists.txt"
-if (Test-Path $exCMake) {
-    $content = Get-Content $exCMake -Raw
-    if ($content -match 'target_link_libraries\s*\(\s*ForsettiModulesExample[^)]*ForsettiPlatform') {
-        $violations += "R006: ForsettiModulesExample/CMakeLists.txt links ForsettiPlatform (forbidden)"
-    }
-    if ($content -match 'target_link_libraries\s*\(\s*ForsettiModulesExample[^)]*ForsettiHostTemplate') {
-        $violations += "R006: ForsettiModulesExample/CMakeLists.txt links ForsettiHostTemplate (forbidden)"
+# Example modules must not link ForsettiPlatform, ForsettiHostTemplate, or each other
+$exampleTargets = @("ForsettiExampleServiceModule", "ForsettiExampleUIModule", "ForsettiExampleAppModule")
+foreach ($target in $exampleTargets) {
+    $exCMake = Join-Path $repoRoot "src\$target\CMakeLists.txt"
+    if (Test-Path $exCMake) {
+        $content = Get-Content $exCMake -Raw
+        if ($content -match "target_link_libraries\s*\(\s*$target[^)]*ForsettiPlatform") {
+            $violations += "R006: $target/CMakeLists.txt links ForsettiPlatform (forbidden)"
+        }
+        if ($content -match "target_link_libraries\s*\(\s*$target[^)]*ForsettiHostTemplate") {
+            $violations += "R006: $target/CMakeLists.txt links ForsettiHostTemplate (forbidden)"
+        }
+        foreach ($other in $exampleTargets) {
+            if ($other -ne $target -and $content -match "target_link_libraries\s*\(\s*$target[^)]*$other") {
+                $violations += "R006: $target/CMakeLists.txt links $other (forbidden)"
+            }
+        }
     }
 }
 

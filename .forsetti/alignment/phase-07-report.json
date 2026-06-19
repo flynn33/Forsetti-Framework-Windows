@@ -1,0 +1,39 @@
+{
+  "phase": "07",
+  "name": "host-templates-examples-and-module-isolation",
+  "timestampUtc": "2026-06-19T13:16:25Z",
+  "status": "completed-with-native-toolchain-blocked",
+  "changes": [
+    "Added ForsettiHostTemplate public contracts and implementation for host state, controller, bootstrap, overlay routing, and surface-state adaptation.",
+    "Added Platform view factory registry contracts and implementation with manifest-declared view ID enforcement and duplicate ownership checks.",
+    "Split the combined example module target into isolated service, UI, and app module targets.",
+    "Added a downstream samples/ForsettiDemo composition root that composes public framework and example targets.",
+    "Added Windows starter templates for service, UI, app, shared database, and host composition.",
+    "Removed the old combined ForsettiModulesExample implementation and manifests."
+  ],
+  "validation": [
+    {
+      "command": "python3 JSON parse over repository JSON files",
+      "result": "passed"
+    },
+    {
+      "command": "python3 manifest validation over src/templates/samples/tests ForsettiManifests",
+      "result": "passed: 7 manifest files validated"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "rg stale target/planned-host/attribution terms",
+      "result": "passed: no matches"
+    },
+    {
+      "command": "cmake --preset debug",
+      "result": "blocked: cmake not installed"
+    }
+  ],
+  "knownLimitations": [
+    "HostTemplate, demo, templates, and split examples require native Windows/MSVC build validation."
+  ]
+}

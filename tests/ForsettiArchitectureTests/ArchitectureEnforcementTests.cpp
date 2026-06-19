@@ -4,9 +4,9 @@
 //
 // Architecture enforcement tests — verify one-way dependency rules (R006).
 // Scans #include directives in source files to ensure:
-//   - ForsettiCore never includes ForsettiPlatform, ForsettiHostTemplate, or ForsettiModulesExample
-//   - ForsettiPlatform never includes ForsettiHostTemplate or ForsettiModulesExample
-//   - ForsettiModulesExample never includes ForsettiPlatform or ForsettiHostTemplate
+//   - ForsettiCore never includes ForsettiPlatform, ForsettiHostTemplate, or example modules
+//   - ForsettiPlatform never includes ForsettiHostTemplate or example modules
+//   - Example modules never include ForsettiPlatform, ForsettiHostTemplate, or each other
 
 #include "CppUnitTest.h"
 #include <filesystem>
@@ -58,6 +58,20 @@ namespace {
             }
         }
         return false;
+    }
+
+    std::vector<fs::path> collectExampleSourceFiles(const fs::path& root) {
+        std::vector<fs::path> files;
+        const std::vector<fs::path> roots = {
+            root / "src" / "ForsettiExampleServiceModule",
+            root / "src" / "ForsettiExampleUIModule",
+            root / "src" / "ForsettiExampleAppModule"
+        };
+        for (const auto& exampleRoot : roots) {
+            auto rootFiles = collectSourceFiles(exampleRoot);
+            files.insert(files.end(), rootFiles.begin(), rootFiles.end());
+        }
+        return files;
     }
 
     // Find project root by looking for CMakeLists.txt
@@ -116,7 +130,7 @@ public:
         }
     }
 
-    TEST_METHOD(ForsettiCore_MustNotInclude_ForsettiModulesExample)
+    TEST_METHOD(ForsettiCore_MustNotInclude_ExampleModules)
     {
         auto root = findProjectRoot();
         auto coreHeaders = collectSourceFiles(root / "include" / "ForsettiCore");
@@ -128,8 +142,12 @@ public:
 
         for (const auto& file : allCoreFiles) {
             auto includes = extractIncludes(file);
-            Assert::IsFalse(includesLayer(includes, "ForsettiModulesExample"),
-                (L"ForsettiCore file includes ForsettiModulesExample: " + file.wstring()).c_str());
+            Assert::IsFalse(includesLayer(includes, "ForsettiExampleServiceModule"),
+                (L"ForsettiCore file includes ForsettiExampleServiceModule: " + file.wstring()).c_str());
+            Assert::IsFalse(includesLayer(includes, "ForsettiExampleUIModule"),
+                (L"ForsettiCore file includes ForsettiExampleUIModule: " + file.wstring()).c_str());
+            Assert::IsFalse(includesLayer(includes, "ForsettiExampleAppModule"),
+                (L"ForsettiCore file includes ForsettiExampleAppModule: " + file.wstring()).c_str());
         }
     }
 
@@ -150,7 +168,7 @@ public:
         }
     }
 
-    TEST_METHOD(ForsettiPlatform_MustNotInclude_ForsettiModulesExample)
+    TEST_METHOD(ForsettiPlatform_MustNotInclude_ExampleModules)
     {
         auto root = findProjectRoot();
         auto platformHeaders = collectSourceFiles(root / "include" / "ForsettiPlatform");
@@ -162,32 +180,59 @@ public:
 
         for (const auto& file : allPlatformFiles) {
             auto includes = extractIncludes(file);
-            Assert::IsFalse(includesLayer(includes, "ForsettiModulesExample"),
-                (L"ForsettiPlatform file includes ForsettiModulesExample: " + file.wstring()).c_str());
+            Assert::IsFalse(includesLayer(includes, "ForsettiExampleServiceModule"),
+                (L"ForsettiPlatform file includes ForsettiExampleServiceModule: " + file.wstring()).c_str());
+            Assert::IsFalse(includesLayer(includes, "ForsettiExampleUIModule"),
+                (L"ForsettiPlatform file includes ForsettiExampleUIModule: " + file.wstring()).c_str());
+            Assert::IsFalse(includesLayer(includes, "ForsettiExampleAppModule"),
+                (L"ForsettiPlatform file includes ForsettiExampleAppModule: " + file.wstring()).c_str());
         }
     }
 
-    TEST_METHOD(ForsettiModulesExample_MustNotInclude_ForsettiPlatform)
+    TEST_METHOD(ExampleModules_MustNotInclude_ForsettiPlatform)
     {
         auto root = findProjectRoot();
-        auto exampleSources = collectSourceFiles(root / "src" / "ForsettiModulesExample");
+        auto exampleSources = collectExampleSourceFiles(root);
 
         for (const auto& file : exampleSources) {
             auto includes = extractIncludes(file);
             Assert::IsFalse(includesLayer(includes, "ForsettiPlatform"),
-                (L"ForsettiModulesExample file includes ForsettiPlatform: " + file.wstring()).c_str());
+                (L"Example module file includes ForsettiPlatform: " + file.wstring()).c_str());
         }
     }
 
-    TEST_METHOD(ForsettiModulesExample_MustNotInclude_ForsettiHostTemplate)
+    TEST_METHOD(ExampleModules_MustNotInclude_ForsettiHostTemplate)
     {
         auto root = findProjectRoot();
-        auto exampleSources = collectSourceFiles(root / "src" / "ForsettiModulesExample");
+        auto exampleSources = collectExampleSourceFiles(root);
 
         for (const auto& file : exampleSources) {
             auto includes = extractIncludes(file);
             Assert::IsFalse(includesLayer(includes, "ForsettiHostTemplate"),
-                (L"ForsettiModulesExample file includes ForsettiHostTemplate: " + file.wstring()).c_str());
+                (L"Example module file includes ForsettiHostTemplate: " + file.wstring()).c_str());
+        }
+    }
+
+    TEST_METHOD(ExampleModules_MustNotInclude_EachOther)
+    {
+        auto root = findProjectRoot();
+        auto exampleSources = collectExampleSourceFiles(root);
+
+        for (const auto& file : exampleSources) {
+            auto includes = extractIncludes(file);
+            const auto fileText = file.string();
+            if (fileText.find("ForsettiExampleServiceModule") == std::string::npos) {
+                Assert::IsFalse(includesLayer(includes, "ForsettiExampleServiceModule"),
+                    (L"Example module file includes ForsettiExampleServiceModule: " + file.wstring()).c_str());
+            }
+            if (fileText.find("ForsettiExampleUIModule") == std::string::npos) {
+                Assert::IsFalse(includesLayer(includes, "ForsettiExampleUIModule"),
+                    (L"Example module file includes ForsettiExampleUIModule: " + file.wstring()).c_str());
+            }
+            if (fileText.find("ForsettiExampleAppModule") == std::string::npos) {
+                Assert::IsFalse(includesLayer(includes, "ForsettiExampleAppModule"),
+                    (L"Example module file includes ForsettiExampleAppModule: " + file.wstring()).c_str());
+            }
         }
     }
 };

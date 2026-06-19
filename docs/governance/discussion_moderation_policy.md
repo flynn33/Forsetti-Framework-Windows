@@ -12,7 +12,7 @@ The moderation policy applies to discussions about repository code, documentatio
 
 ## Authority Sources
 
-The moderation agent is anchored to:
+The moderation responder is anchored to:
 - `CODE_OF_CONDUCT.md`
 - GitHub's contributor-guideline and moderation surfaces referenced by the repository owner
 

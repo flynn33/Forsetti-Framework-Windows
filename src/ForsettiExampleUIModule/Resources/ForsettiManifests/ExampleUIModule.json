@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.1",
+  "manifestTemplateVersion": "1.1",
+  "moduleID": "com.forsetti.module.example-ui",
+  "displayName": "Example UI",
+  "moduleVersion": {"major": 0, "minor": 1, "patch": 0, "prerelease": null},
+  "moduleType": "ui",
+  "supportedPlatforms": ["Windows"],
+  "minForsettiVersion": {"major": 0, "minor": 2, "patch": 0, "prerelease": null},
+  "maxForsettiVersion": null,
+  "capabilitiesRequested": ["routing_overlay", "toolbar_items", "view_injection", "ui_theme_mask", "event_publishing"],
+  "iapProductID": "com.forsetti.iap.example-ui",
+  "entryPoint": "ExampleUIModule",
+  "defaultModuleRole": "ui",
+  "runtimeRequirements": {
+    "io": [],
+    "ui": {
+      "controlSchemeID": "example-ui.controls",
+      "layoutID": "example-ui.layout",
+      "themeIDs": ["example-ui.default-theme"],
+      "viewIDs": ["ExampleHomeBannerView", "ExampleDashboardView", "ExampleOverlayView"],
+      "slotIDs": ["homeBanner", "dashboardPrimary", "overlayMain"],
+      "toolbarItemIDs": ["example-toolbar-1"],
+      "routeIDs": ["example-route-1"],
+      "pointerIDs": ["example-pointer-1"]
+    },
+    "dataIsolation": {
+      "mode": "private_to_module",
+      "ownedStoreIDs": [],
+      "requiredDefaultRoles": []
+    }
+  }
+}

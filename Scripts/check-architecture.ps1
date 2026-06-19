@@ -13,7 +13,7 @@ Write-Host "=== Architecture Enforcement ===" -ForegroundColor Cyan
 # --- Rule R006: One-way dependencies ---
 Write-Host "`nChecking #include layering rules..." -ForegroundColor Yellow
 
-# ForsettiCore must NOT include ForsettiPlatform, ForsettiHostTemplate, or ForsettiModulesExample
+# ForsettiCore must NOT include ForsettiPlatform, ForsettiHostTemplate, or example modules
 $coreFiles = Get-ChildItem -Path "$repoRoot\include\ForsettiCore", "$repoRoot\src\ForsettiCore" -Recurse -Include "*.h", "*.cpp" -ErrorAction SilentlyContinue
 foreach ($file in $coreFiles) {
     $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
@@ -23,32 +23,46 @@ foreach ($file in $coreFiles) {
     if ($content -match '#include\s+[<"]ForsettiHostTemplate/') {
         $violations += "R006: $($file.FullName) includes ForsettiHostTemplate (forbidden for ForsettiCore)"
     }
-    if ($content -match '#include\s+[<"]ForsettiModulesExample/') {
-        $violations += "R006: $($file.FullName) includes ForsettiModulesExample (forbidden for ForsettiCore)"
+    if ($content -match '#include\s+[<"]ForsettiExample(Service|UI|App)Module/') {
+        $violations += "R006: $($file.FullName) includes an example module (forbidden for ForsettiCore)"
     }
 }
 
-# ForsettiPlatform must NOT include ForsettiHostTemplate or ForsettiModulesExample
+# ForsettiPlatform must NOT include ForsettiHostTemplate or example modules
 $platformFiles = Get-ChildItem -Path "$repoRoot\include\ForsettiPlatform", "$repoRoot\src\ForsettiPlatform" -Recurse -Include "*.h", "*.cpp" -ErrorAction SilentlyContinue
 foreach ($file in $platformFiles) {
     $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
     if ($content -match '#include\s+[<"]ForsettiHostTemplate/') {
         $violations += "R006: $($file.FullName) includes ForsettiHostTemplate (forbidden for ForsettiPlatform)"
     }
-    if ($content -match '#include\s+[<"]ForsettiModulesExample/') {
-        $violations += "R006: $($file.FullName) includes ForsettiModulesExample (forbidden for ForsettiPlatform)"
+    if ($content -match '#include\s+[<"]ForsettiExample(Service|UI|App)Module/') {
+        $violations += "R006: $($file.FullName) includes an example module (forbidden for ForsettiPlatform)"
     }
 }
 
-# ForsettiModulesExample must NOT include ForsettiPlatform or ForsettiHostTemplate
-$exampleFiles = Get-ChildItem -Path "$repoRoot\src\ForsettiModulesExample" -Recurse -Include "*.h", "*.cpp" -ErrorAction SilentlyContinue
+# Example modules must NOT include ForsettiPlatform, ForsettiHostTemplate, or each other
+$exampleRoots = @(
+    "$repoRoot\src\ForsettiExampleServiceModule",
+    "$repoRoot\src\ForsettiExampleUIModule",
+    "$repoRoot\src\ForsettiExampleAppModule"
+)
+$exampleFiles = @()
+foreach ($exampleRoot in $exampleRoots) {
+    if (Test-Path $exampleRoot) {
+        $exampleFiles += Get-ChildItem -Path $exampleRoot -Recurse -Include "*.h", "*.cpp" -ErrorAction SilentlyContinue
+    }
+}
 foreach ($file in $exampleFiles) {
     $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
     if ($content -match '#include\s+[<"]ForsettiPlatform/') {
-        $violations += "R006: $($file.FullName) includes ForsettiPlatform (forbidden for ForsettiModulesExample)"
+        $violations += "R006: $($file.FullName) includes ForsettiPlatform (forbidden for example modules)"
     }
     if ($content -match '#include\s+[<"]ForsettiHostTemplate/') {
-        $violations += "R006: $($file.FullName) includes ForsettiHostTemplate (forbidden for ForsettiModulesExample)"
+        $violations += "R006: $($file.FullName) includes ForsettiHostTemplate (forbidden for example modules)"
+    }
+    if ($content -match '#include\s+[<"]Example(Service|UI|App)Module\.h[>"]' -and
+        $file.DirectoryName -notmatch $Matches[1]) {
+        $violations += "R006: $($file.FullName) includes another example module"
     }
 }
 

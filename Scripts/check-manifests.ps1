@@ -19,16 +19,67 @@ $seenModuleIDs = @{}
 
 Write-Host "=== Manifest Validation ===" -ForegroundColor Cyan
 
-$requiredFields = @("schemaVersion", "moduleID", "displayName", "moduleVersion", "moduleType", "supportedPlatforms", "minForsettiVersion", "entryPoint")
+$baseRequiredFields = @("schemaVersion", "moduleID", "displayName", "moduleVersion", "moduleType", "supportedPlatforms", "minForsettiVersion", "capabilitiesRequested", "entryPoint")
+$v11RequiredFields = @("manifestTemplateVersion", "maxForsettiVersion", "iapProductID", "defaultModuleRole", "runtimeRequirements")
 $validModuleTypes = @("service", "ui", "app")
 $validPlatforms = @("Windows")
-$validCapabilities = @("networking", "storage", "secure_storage", "file_export", "telemetry", "routing_overlay", "toolbar_items", "view_injection", "ui_theme_mask", "event_publishing")
+$validCapabilities = @(
+    "networking", "storage", "secure_storage", "file_export", "crypto_utilities",
+    "telemetry", "routing_overlay", "toolbar_items", "view_injection", "ui_theme_mask",
+    "event_publishing", "shared_database", "authentication", "diagnostics", "api", "security"
+)
+$validDefaultRoles = @("ui", "shared_database", "authentication", "diagnostics", "api", "security")
+$validIOKinds = @("networking", "storage", "secure_storage", "file_export", "crypto_utilities", "telemetry", "shared_database", "authentication", "diagnostics", "api", "security")
+$validIOAccess = @("read", "write", "read_write", "execute", "emit", "consume")
+$ioCapabilityMap = @{
+    networking = "networking"
+    storage = "storage"
+    secure_storage = "secure_storage"
+    file_export = "file_export"
+    crypto_utilities = "crypto_utilities"
+    telemetry = "telemetry"
+    shared_database = "shared_database"
+    authentication = "authentication"
+    diagnostics = "diagnostics"
+    api = "api"
+    security = "security"
+}
+
+function Test-HasProperty {
+    param(
+        [Parameter(Mandatory=$true)] [object]$Object,
+        [Parameter(Mandatory=$true)] [string]$Name
+    )
+    return $null -ne $Object.PSObject.Properties[$Name]
+}
+
+function Test-DuplicateValues {
+    param(
+        [Parameter(Mandatory=$true)] [array]$Values,
+        [Parameter(Mandatory=$true)] [string]$Field,
+        [Parameter(Mandatory=$true)] [string]$Rel
+    )
+
+    $seen = @{}
+    $messages = @()
+    foreach ($value in $Values) {
+        if ($seen.ContainsKey([string]$value)) {
+            $messages += "$Rel - Duplicate $Field value '$value'"
+        } else {
+            $seen[[string]$value] = $true
+        }
+    }
+    return $messages
+}
 
 # Find all manifest JSON files
-$srcRoot = Join-Path $repoRoot "src"
+$searchRootNames = @("src", "templates", "samples", "tests")
 $manifestDirs = @()
-if (Test-Path $srcRoot) {
-    $manifestDirs = Get-ChildItem -Path $srcRoot -Recurse -Directory -Filter "ForsettiManifests" -ErrorAction SilentlyContinue
+foreach ($rootName in $searchRootNames) {
+    $searchRoot = Join-Path $repoRoot $rootName
+    if (Test-Path $searchRoot) {
+        $manifestDirs += Get-ChildItem -Path $searchRoot -Recurse -Directory -Filter "ForsettiManifests" -ErrorAction SilentlyContinue
+    }
 }
 $manifestFiles = @()
 foreach ($dir in $manifestDirs) {
@@ -55,16 +106,28 @@ foreach ($file in $manifestFiles) {
     }
 
     # Check required fields
-    foreach ($field in $requiredFields) {
-        $value = $manifest.PSObject.Properties[$field]
-        if (-not $value -or $null -eq $value.Value) {
+    foreach ($field in $baseRequiredFields) {
+        if (-not (Test-HasProperty -Object $manifest -Name $field) -or $null -eq $manifest.PSObject.Properties[$field].Value) {
             $violations += "$rel - Missing required field: '$field'"
         }
     }
 
     # Validate schemaVersion
-    if ($manifest.schemaVersion -and $manifest.schemaVersion -ne "1.0") {
-        $violations += "$rel - schemaVersion must be '1.0', got '$($manifest.schemaVersion)'"
+    if ($manifest.schemaVersion -and $manifest.schemaVersion -notin @("1.0", "1.1")) {
+        $violations += "$rel - schemaVersion must be '1.0' or '1.1', got '$($manifest.schemaVersion)'"
+    }
+
+    if ($manifest.schemaVersion -eq "1.1") {
+        foreach ($field in $v11RequiredFields) {
+            if (-not (Test-HasProperty -Object $manifest -Name $field)) {
+                $violations += "$rel - Missing required 1.1 field: '$field'"
+            }
+        }
+        if ($manifest.manifestTemplateVersion -ne "1.1") {
+            $violations += "$rel - manifestTemplateVersion must be '1.1' for schemaVersion 1.1"
+        }
+    } elseif ((Test-HasProperty -Object $manifest -Name "manifestTemplateVersion") -and $manifest.manifestTemplateVersion -ne "1.0") {
+        $violations += "$rel - manifestTemplateVersion must be '1.0' for schemaVersion 1.0"
     }
 
     # Validate moduleType
@@ -83,15 +146,18 @@ foreach ($file in $manifestFiles) {
         if ("Windows" -cnotin $platforms) {
             $violations += "$rel - supportedPlatforms must include 'Windows'"
         }
+        $violations += Test-DuplicateValues -Values $platforms -Field "supportedPlatforms" -Rel $rel
     }
 
     # Validate capabilitiesRequested (if present)
     if ($manifest.capabilitiesRequested) {
+        $capabilities = @($manifest.capabilitiesRequested)
         foreach ($cap in $manifest.capabilitiesRequested) {
             if ($cap -cnotin $validCapabilities) {
                 $violations += "$rel - Unknown capability '$cap' (valid: $($validCapabilities -join ', '))"
             }
         }
+        $violations += Test-DuplicateValues -Values $capabilities -Field "capabilitiesRequested" -Rel $rel
     }
 
     # Check for duplicate moduleID
@@ -124,6 +190,83 @@ foreach ($file in $manifestFiles) {
     foreach ($prop in $props) {
         if ($prop -match '_') {
             $violations += "$rel - Key '$prop' uses snake_case (manifests must use camelCase)"
+        }
+    }
+
+    if ($manifest.schemaVersion -eq "1.1" -and (Test-HasProperty -Object $manifest -Name "runtimeRequirements")) {
+        $runtime = $manifest.runtimeRequirements
+        if (-not (Test-HasProperty -Object $runtime -Name "io")) {
+            $violations += "$rel - runtimeRequirements.io is required"
+        }
+        if (-not (Test-HasProperty -Object $runtime -Name "ui")) {
+            $violations += "$rel - runtimeRequirements.ui is required"
+        }
+        if (-not (Test-HasProperty -Object $runtime -Name "dataIsolation")) {
+            $violations += "$rel - runtimeRequirements.dataIsolation is required"
+        }
+
+        $capabilities = @($manifest.capabilitiesRequested)
+        $ioRequirementIDs = @()
+        foreach ($io in @($runtime.io)) {
+            if (-not $io.requirementID) {
+                $violations += "$rel - runtimeRequirements.io entry missing requirementID"
+            } else {
+                $ioRequirementIDs += $io.requirementID
+            }
+            if ($io.kind -cnotin $validIOKinds) {
+                $violations += "$rel - runtimeRequirements.io '$($io.requirementID)' has invalid kind '$($io.kind)'"
+            } elseif ($ioCapabilityMap.ContainsKey($io.kind) -and $ioCapabilityMap[$io.kind] -cnotin $capabilities) {
+                $violations += "$rel - runtimeRequirements.io '$($io.requirementID)' requires capability '$($ioCapabilityMap[$io.kind])'"
+            }
+            if ($io.access -cnotin $validIOAccess) {
+                $violations += "$rel - runtimeRequirements.io '$($io.requirementID)' has invalid access '$($io.access)'"
+            }
+        }
+        if ($ioRequirementIDs.Count -gt 0) {
+            $violations += Test-DuplicateValues -Values $ioRequirementIDs -Field "runtimeRequirements.io.requirementID" -Rel $rel
+        }
+
+        if ($manifest.defaultModuleRole) {
+            if ($manifest.defaultModuleRole -cnotin $validDefaultRoles) {
+                $violations += "$rel - Invalid defaultModuleRole '$($manifest.defaultModuleRole)'"
+            } elseif ($manifest.defaultModuleRole -eq "ui" -and $manifest.moduleType -cnotin @("ui", "app")) {
+                $violations += "$rel - defaultModuleRole 'ui' requires moduleType 'ui' or 'app'"
+            } elseif ($manifest.defaultModuleRole -ne "ui" -and $manifest.moduleType -ne "service") {
+                $violations += "$rel - defaultModuleRole '$($manifest.defaultModuleRole)' requires moduleType 'service'"
+            }
+        }
+
+        if ($manifest.moduleType -eq "service" -and $null -ne $runtime.ui) {
+            $violations += "$rel - service modules must set runtimeRequirements.ui to null"
+        }
+        if ($manifest.moduleType -in @("ui", "app") -and $null -eq $runtime.ui) {
+            $violations += "$rel - ui and app modules must declare runtimeRequirements.ui"
+        }
+
+        if ($runtime.dataIsolation) {
+            $isolation = $runtime.dataIsolation
+            if ($isolation.mode -cnotin @("private_to_module", "framework_mediated_shared")) {
+                $violations += "$rel - runtimeRequirements.dataIsolation.mode is invalid"
+            }
+            $ownedStoreIDs = @($isolation.ownedStoreIDs)
+            if ($ownedStoreIDs.Count -gt 0) {
+                $violations += Test-DuplicateValues -Values $ownedStoreIDs -Field "runtimeRequirements.dataIsolation.ownedStoreIDs" -Rel $rel
+            }
+            $roles = @($isolation.requiredDefaultRoles)
+            foreach ($role in $roles) {
+                if ($role -cnotin $validDefaultRoles) {
+                    $violations += "$rel - runtimeRequirements.dataIsolation.requiredDefaultRoles contains invalid role '$role'"
+                }
+            }
+            if ($roles.Count -gt 0) {
+                $violations += Test-DuplicateValues -Values $roles -Field "runtimeRequirements.dataIsolation.requiredDefaultRoles" -Rel $rel
+            }
+            if ($isolation.mode -eq "framework_mediated_shared" -and
+                $manifest.defaultModuleRole -ne "shared_database" -and
+                "shared_database" -cnotin $roles -and
+                "shared_database" -cnotin @($runtime.io | ForEach-Object { $_.kind })) {
+                $violations += "$rel - framework_mediated_shared requires a shared_database role or I/O requirement"
+            }
         }
     }
 }

@@ -25,10 +25,10 @@ CompatibilityReport CompatibilityChecker::checkCompatibility(const ModuleManifes
     CompatibilityReport report;
     report.moduleID = manifest.moduleID;
 
-    // 1. Schema version must be "1.0"
-    if (manifest.schemaVersion != "1.0") {
+    // 1. Schema version must be supported by this runtime.
+    if (!manifest.isSchemaValid()) {
         report.issues.push_back({
-            "Unsupported schema version: " + manifest.schemaVersion + ". Only \"1.0\" is supported.",
+            "Unsupported schema version: " + manifest.schemaVersion + ". Supported versions are \"1.0\" and \"1.1\".",
             CompatibilitySeverity::Error,
             CompatibilityIssueCode::UnsupportedSchemaVersion
         });
@@ -86,14 +86,6 @@ CompatibilityReport CompatibilityChecker::checkCompatibility(const ModuleManifes
             }
         }
 
-        // 6. If UIThemeMask capability requested, add a warning
-        if (capability == Capability::UIThemeMask) {
-            report.issues.push_back({
-                "UIThemeMask is reserved for the framework.",
-                CompatibilitySeverity::Warning,
-                CompatibilityIssueCode::DeniedCapability
-            });
-        }
     }
 
     return report;
