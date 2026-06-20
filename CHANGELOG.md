@@ -4,7 +4,7 @@ All notable changes to Forsetti Framework - Windows are documented in this file.
 
 The project uses Conventional Commit style for commit messages. Release entries should group user-visible changes by area and should call out runtime contract changes, validation changes, and follow-up owner decisions.
 
-## [Unreleased] - 2026-06-19
+## [Unreleased] - 2026-06-20
 
 ### Runtime Contract
 
@@ -26,6 +26,10 @@ The project uses Conventional Commit style for commit messages. Release entries 
 - Updated manifest validation for schema 1.1, recursive template/sample scanning, exact Windows platform casing, duplicate checks, and runtime requirement checks.
 - Renamed repository surface checks to neutral terminology and removed stale historical completion claims.
 - Native Debug/Release validation remains pending on a Windows toolchain.
+
+### Documentation
+
+- Aligned README and Wiki documentation with the merged 0.2.0 runtime, HostTemplate, split example targets, module registration, runtime requirements, platform adapters, and native-validation blockers.
 
 ## [v0.1.0] - 2026-03-09
 

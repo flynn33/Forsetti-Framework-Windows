@@ -226,13 +226,13 @@ Public Wiki:
 
 - [Forsetti Framework - Windows Wiki](https://github.com/flynn33/Forsetti-Framework-Windows/wiki)
 
-The Wiki contains detailed pages for architecture, runtime lifecycle, module manifests, capabilities, UI surface behavior, platform services, build/test guardrails, governance, API reference, and roadmap decisions.
+The Wiki contains detailed pages for architecture, runtime lifecycle, module manifests, runtime requirements, module registration, capabilities, UI surface behavior, platform services, build/test guardrails, governance, API reference, and roadmap decisions. The repository-tracked `wiki.md` file mirrors the live page set and should be updated with the live Wiki.
 
 ## Current Alignment Status
 
-Runtime-boundary alignment evidence is tracked under `.forsetti/alignment`. The canonical local verification path remains `.\Scripts\verify-forsetti-guardrails.ps1` on a Windows/MSVC environment with CMake, CTest, PowerShell, and `VCPKG_ROOT` available.
+Runtime-boundary alignment is merged into `main`, and evidence is tracked under `.forsetti/alignment`. The canonical local verification path remains `.\Scripts\verify-forsetti-guardrails.ps1` on a Windows/MSVC environment with CMake, CTest, PowerShell, and `VCPKG_ROOT` available.
 
-Owner decisions and any environment-specific validation gaps are tracked in the final alignment report.
+The final alignment report still marks native Debug/Release validation blocked until CMake, CTest, PowerShell, MSVC, and vcpkg validation are run on a configured Windows environment.
 
 ## Patent Notice
 
