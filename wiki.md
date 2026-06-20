@@ -12,16 +12,16 @@ The Wiki is the long-form documentation surface for architecture, runtime behavi
 |---|---|
 | `Home` | Orientation, status, page map, and high-level diagrams |
 | `Architecture` | Layering rules, component graph, dependency boundaries, and repository layout |
-| `Runtime-Lifecycle` | Boot, discovery, activation, deactivation, restore, and entitlement reconciliation |
-| `Module-System` | Module types, manifests, registry factories, compatibility, and examples |
-| `Capabilities-and-Security` | Capability policy, scoped service access, messaging rules, and reserved namespaces |
-| `UI-Surface-Model` | UI/app activation, toolbar items, view injections, overlays, and theme mask policy |
-| `Platform-Services` | WinHTTP, Registry, DPAPI, local file export, telemetry, and service registration |
-| `Build-and-Testing` | Prerequisites, CMake presets, CTest, guardrail scripts, and validation evidence |
-| `API-Reference` | Public headers, interfaces, value types, enums, and platform services |
+| `Runtime-Lifecycle` | Boot, discovery, registration confirmation, activation, deactivation, restore, and entitlement reconciliation |
+| `Module-System` | Module types, schema 1.1 manifests, runtime requirements, registry factories, compatibility, and examples |
+| `Capabilities-and-Security` | Capability policy, scoped service access, default roles, messaging rules, and reserved namespaces |
+| `UI-Surface-Model` | UI/app activation, declared UI IDs, toolbar items, view injections, overlays, and theme mask policy |
+| `Platform-Services` | WinHTTP, Registry, DPAPI, local file export, telemetry, registration persistence, digesting, and view factories |
+| `Build-and-Testing` | Prerequisites, CMake presets, CTest, guardrail scripts, hosted checks, and validation blockers |
+| `API-Reference` | Public headers, interfaces, value types, enums, platform services, and host template contracts |
 | `Coding-Policy` | Engineering rules, dependency invariants, style expectations, and verification policy |
-| `Governance-and-Operations` | Repository automation, discussion responders, moderation, PR workflow, and evidence policy |
-| `Roadmap-and-Risks` | Planned host template, remote workflow restoration, dependency pinning, and future hardening |
+| `Governance-and-Operations` | Repository automation, discussion routing, moderation, PR workflow, and evidence policy |
+| `Roadmap-and-Risks` | Native validation blockers, remote workflow restoration, dependency pinning, and future hardening |
 
 ## Documentation Architecture
 
@@ -50,10 +50,10 @@ flowchart LR
 
 ## Current Status
 
-Runtime-boundary alignment evidence is tracked under `.forsetti/alignment`. The canonical validation path is:
+Runtime-boundary alignment is merged into `main`, and evidence is tracked under `.forsetti/alignment`. The canonical Windows validation path is:
 
 ```powershell
 .\Scripts\verify-forsetti-guardrails.ps1
 ```
 
-The wrapper configures, builds, runs CTest, checks architecture and dependency boundaries, validates manifests, runs pull request compatibility checks, and runs script regression tests.
+The wrapper configures, builds, runs CTest, checks architecture and dependency boundaries, validates manifests, runs pull request compatibility checks, and runs script regression tests. Native Debug/Release validation remains blocked until it is run on Windows/MSVC with CMake, CTest, PowerShell, and `VCPKG_ROOT` available.
