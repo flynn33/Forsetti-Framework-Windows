@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ForsettiCore/ForsettiContext.h"
 #include "ForsettiCore/ForsettiProtocols.h"
 #include "ForsettiCore/ModuleModels.h"
 #include "ForsettiCore/UIModels.h"

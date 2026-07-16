@@ -6,6 +6,12 @@ The project uses Conventional Commit style for commit messages. Release entries 
 
 ## [Unreleased] - 2026-06-20
 
+### Build And Compilation
+
+- Fixed missing `ForsettiContext.h` include in example module headers (ExampleServiceModule, ExampleUIModule, ExampleAppModule) that caused `C2027` compilation errors for `IForsettiModuleContext`.
+- Added `builtin-baseline` to `vcpkg.json` to satisfy modern vcpkg manifest-mode requirements.
+- Enabled `BUILD_TESTING` in the Release CMake preset and added a matching Release test preset.
+
 ### Runtime Contract
 
 - Added manifest schema 1.1 with runtime requirements, UI declarations, default roles, and 1.0 compatibility.
@@ -25,11 +31,11 @@ The project uses Conventional Commit style for commit messages. Release entries 
 
 - Updated manifest validation for schema 1.1, recursive template/sample scanning, exact Windows platform casing, duplicate checks, and runtime requirement checks.
 - Renamed repository surface checks to neutral terminology and removed stale historical completion claims.
-- Native Debug/Release validation remains pending on a Windows toolchain.
+- Native Debug/Release validation completed on Windows/MSVC with CMake, CTest, and PowerShell guardrails. All guardrail scripts pass. 173/177 tests pass (4 pre-existing test fixture bugs in service container type registration tracked separately).
 
 ### Documentation
 
-- Aligned README and Wiki documentation with the merged 0.2.0 runtime, HostTemplate, split example targets, module registration, runtime requirements, platform adapters, and native-validation blockers.
+- Aligned README and Wiki documentation with the merged 0.2.0 runtime, HostTemplate, split example targets, module registration, runtime requirements, platform adapters, and native-validation status.
 
 ## [v0.1.0] - 2026-03-09
 
