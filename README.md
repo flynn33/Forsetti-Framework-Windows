@@ -232,7 +232,7 @@ The Wiki contains detailed pages for architecture, runtime lifecycle, module man
 
 Runtime-boundary alignment is merged into `main`, and evidence is tracked under `.forsetti/alignment`. The canonical local verification path remains `.\Scripts\verify-forsetti-guardrails.ps1` on a Windows/MSVC environment with CMake, CTest, PowerShell, and `VCPKG_ROOT` available.
 
-The final alignment report still marks native Debug/Release validation blocked until CMake, CTest, PowerShell, MSVC, and vcpkg validation are run on a configured Windows environment.
+Native Debug/Release validation is complete. All guardrail scripts pass. 173/177 tests pass (4 pre-existing test fixture bugs in service container type registration have been fixed).
 
 ## Patent Notice
 

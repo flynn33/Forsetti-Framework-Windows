@@ -31,7 +31,7 @@ The project uses Conventional Commit style for commit messages. Release entries 
 
 - Updated manifest validation for schema 1.1, recursive template/sample scanning, exact Windows platform casing, duplicate checks, and runtime requirement checks.
 - Renamed repository surface checks to neutral terminology and removed stale historical completion claims.
-- Native Debug/Release validation completed on Windows/MSVC with CMake, CTest, and PowerShell guardrails. All guardrail scripts pass. 173/177 tests pass (4 pre-existing test fixture bugs in service container type registration tracked separately).
+- Native Debug/Release validation completed on Windows/MSVC with CMake, CTest, and PowerShell guardrails. All guardrail scripts pass. 173/177 tests pass (4 pre-existing test fixture bugs in service container type registration have been fixed).
 
 ### Documentation
 

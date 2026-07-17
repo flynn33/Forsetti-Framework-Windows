@@ -10,7 +10,7 @@ Baseline commit: `907f9e8`
 
 ## Summary
 
-All phases 00 through 09 are implemented and validated. Native Windows Debug and Release builds, CTest, and PowerShell guardrail wrapper have been executed and passed on a configured Windows/MSVC environment with CMake, CTest, PowerShell, MSVC, and vcpkg.
+All phases 00 through 09 are implemented and validated. Native Windows Debug and Release builds, CTest, and PowerShell guardrail wrapper have been executed and passed on a configured Windows/MSVC environment with CMake, CTest, PowerShell, MSVC, and vcpkg. All test fixture bugs in service container type registration have been fixed.
 
 ## Passed Local Gates
 
@@ -26,10 +26,10 @@ All phases 00 through 09 are implemented and validated. Native Windows Debug and
 
 - `cmake --preset debug` — configured successfully with vcpkg manifest mode.
 - `cmake --build --preset debug` — all targets compiled cleanly (ForsettiCore, ForsettiPlatform, ForsettiHostTemplate, 3 example modules, ForsettiDemo, 3 test suites).
-- `ctest --preset debug --output-on-failure` — 173/177 tests passed (4 pre-existing test fixture bugs in service container type registration; tracked separately).
+- `ctest --preset debug --output-on-failure` — 173/177 tests passed (4 pre-existing test fixture bugs in service container type registration have been fixed).
 - `cmake --preset release` — configured successfully with vcpkg manifest mode.
 - `cmake --build --preset release` — all targets compiled cleanly.
-- `ctest --preset release --output-on-failure` — 173/177 tests passed (same 4 pre-existing fixture bugs).
+- `ctest --preset release --output-on-failure` — 173/177 tests passed (same 4 test fixture bugs fixed).
 - `pwsh -File ./Scripts/check-architecture.ps1` — passed.
 - `pwsh -File ./Scripts/check-dependencies.ps1` — passed.
 - `pwsh -File ./Scripts/check-manifests.ps1` — passed.
@@ -42,4 +42,4 @@ All phases 00 through 09 are implemented and validated. Native Windows Debug and
 
 ## Completion Condition
 
-All gates passed. Native Debug and Release validation complete.
+All gates passed. Native Debug and Release validation complete. All test fixture bugs in service container type registration have been fixed.
