@@ -1,6 +1,6 @@
 # Forsetti Framework - Windows
 
-Forsetti Framework - Windows is a proprietary modular runtime framework for Windows 11 applications. It is built with C++20, MSVC, CMake, vcpkg, and native Windows SDK service adapters.
+Forsetti Framework - Windows is a modular runtime framework for Windows 11 applications. It is built with C++20, MSVC, CMake, vcpkg, and native Windows SDK service adapters.
 
 The framework centers on a compatibility-governed module model: modules declare identity, platform support, capabilities, entitlement requirements, and optional UI contributions. The runtime validates those declarations before activation, scopes module access to approved services, and keeps UI surface state under framework control.
 
@@ -241,4 +241,7 @@ The architecture and design of Forsetti are the subject of a pending U.S. patent
 
 ## License
 
-Proprietary. Copyright (c) 2026 James Daley. All Rights Reserved.
+Copyright 2026 James Daley
+
+This project is licensed under the Apache License, Version 2.0.
+See the [LICENSE](LICENSE) file for the full terms.
