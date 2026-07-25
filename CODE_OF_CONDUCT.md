@@ -1,9 +1,7 @@
 # Code of Conduct
 
-## Contributing
+This repository is maintained solely by its owner. Outside contributions and collaboration are not accepted.
 
-We are not seeking contributors at this time.
+If you interact with this repository, keep communication civil and professional. Harassment, threats, and abuse are not welcome.
 
-## Scope
-
-This Code of Conduct applies within all project spaces, including issues, pull requests, and GitHub Discussions.
+The owner may close issues, discussions, and pull requests at sole discretion.

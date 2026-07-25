@@ -131,7 +131,7 @@ The repository currently defines `debug` and `release` CMake presets. The packag
 
 ### Full Local Guardrail Wrapper
 
-Run this before opening a pull request:
+Run this for full local verification:
 
 ```powershell
 .\Scripts\verify-forsetti-guardrails.ps1
@@ -215,7 +215,7 @@ Repository documents:
 
 - `README.md` - primary repository entry point.
 - `CHANGELOG.md` - release and notable change history.
-- `CONTRIBUTING.md` - contributor workflow and verification expectations.
+- `CONTRIBUTING.md` - open-source use policy; outside contributions are not accepted.
 - `wiki.md` - tracked index for the public GitHub Wiki.
 - `docs/governance/github-discussion-automation.md` - discussion automation design.
 - `docs/governance/discussion_moderation_policy.md` - discussion moderation policy.
@@ -238,6 +238,12 @@ Native Debug/Release validation is complete. All guardrail scripts pass. 173/177
 
 The architecture and design of Forsetti are the subject of a pending U.S. patent application:
 **Compatibility-Governed, Entitlement-Aware Modular Runtime Framework for Native Application Modules** - U.S. Application No. 63/999,606, filed March 8, 2026. Patent Pending.
+
+## Contributing
+
+This project is open source under Apache License, Version 2.0. You are welcome to use, modify, and redistribute the code under that license.
+
+Outside contributions to this repository are not accepted. Pull requests and collaboration requests will not be reviewed or merged. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

@@ -1,35 +1,9 @@
-## Summary
+# Pull requests are not accepted
 
-<!-- Brief description of what this PR does and why. -->
+This repository is open source under Apache License, Version 2.0 for use, modification, and redistribution.
 
-## Changes
+Outside contributions are not accepted. Pull requests will not be reviewed or merged.
 
-<!-- Bulleted list of key changes. -->
+If you want to build on this work, fork the repository under Apache 2.0 and maintain your changes in your own fork or product.
 
--
-
-## Version Impact
-
-<!-- Select the appropriate version label for this PR. -->
-<!-- Apply a version label only when the change affects release semantics. -->
-
-- [ ] `version:major` — Breaking change (incompatible API changes)
-- [ ] `version:minor` — New feature (backwards-compatible)
-- [ ] `version:patch` — Bug fix (backwards-compatible)
-- [ ] No version change (docs, CI, refactoring)
-
-## Testing
-
-<!-- Describe how you tested these changes. -->
-
-- [ ] Unit tests pass (`ctest --preset debug`)
-- [ ] New tests added for new functionality
-- [ ] Manual testing performed
-
-## Checklist
-
-- [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/) format
-- [ ] Code compiles without warnings (`/W4 /WX`)
-- [ ] License headers present on new files
-- [ ] No secrets or credentials in code
-- [ ] Documentation and changelog updated when behavior, validation, governance, or public status changes
+See [CONTRIBUTING.md](../CONTRIBUTING.md).
