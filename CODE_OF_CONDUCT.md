@@ -5,3 +5,7 @@ This repository is maintained solely by its owner. Outside contributions and col
 If you interact with this repository, keep communication civil and professional. Harassment, threats, and abuse are not welcome.
 
 The owner may close issues, discussions, and pull requests at sole discretion.
+
+## Reporting
+
+Report unacceptable behavior to [contact@ravenforgesoftware.com](mailto:contact@ravenforgesoftware.com).
