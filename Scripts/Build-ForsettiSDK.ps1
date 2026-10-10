@@ -48,8 +48,10 @@ try {
         $tree = @(& git -C $repoRoot ls-tree -r $revision)
         if (@($tree | Where-Object { $_ -match '^(120000|160000) ' }).Count -gt 0) { throw 'Source snapshots cannot contain symlinks or submodule entries.' }
         $snapshotArchive = Join-Path $run 'source-snapshot.zip'
-        Invoke-SdkCommand 'git' @('-C', $repoRoot, 'archive', '--format=zip', "--output=$snapshotArchive", $revision) (Join-Path $run 'source-snapshot.log') | Out-Null
+        Invoke-SdkCommand 'git' @('-c', 'core.autocrlf=false', '-C', $repoRoot, 'archive', '--format=zip', "--output=$snapshotArchive", $revision) (Join-Path $run 'source-snapshot.log') | Out-Null
         [IO.Compression.ZipFile]::ExtractToDirectory($snapshotArchive, $source)
+        # The policy is a byte-exact Git contract, independent of archive filters.
+        Export-SdkGitFile $repoRoot $revision 'CONSUMPTION_POLICY.md' (Join-Path $source 'CONSUMPTION_POLICY.md')
         Get-SdkTreeFiles $source | Out-Null
     }
     $logs = Join-Path $run 'logs'
