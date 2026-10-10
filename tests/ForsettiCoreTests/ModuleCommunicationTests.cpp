@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
-// Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential. Patent Pending.
+// Copyright (c) 2026 James Daley.
+// SPDX-License-Identifier: Apache-2.0
 
 #include "CppUnitTest.h"
 #include "TestHelpers.h"
@@ -61,6 +61,18 @@ namespace {
 
     private:
         std::map<std::string, std::vector<uint8_t>> store_;
+    };
+
+    class TestFileExportService final : public IFileExportService {
+    public:
+        bool exportData(const std::vector<uint8_t>& data, const std::string& filename) override {
+            lastData = data;
+            lastFilename = filename;
+            return true;
+        }
+
+        std::vector<uint8_t> lastData;
+        std::string lastFilename;
     };
 
     std::shared_ptr<ForsettiContext> makeTestContext(
@@ -466,6 +478,57 @@ public:
         Assert::IsTrue(logger->entries[0].level == LogLevel::Warning);
         Assert::AreEqual(std::string("source.mod"), logger->entries[0].sourceModuleID);
         Assert::IsTrue(logger->entries[0].message.find("secure_storage") != std::string::npos);
+    }
+
+    TEST_METHOD(ScopedServices_SecureStorageAllowedWithCapability)
+    {
+        auto services = std::make_shared<ServiceContainer>();
+        auto backing = std::make_shared<TestSecureStorageService>();
+        services->registerService<ISecureStorageService>(backing);
+        auto ctx = makeScopedTestContext(
+            "source.mod", {Capability::SecureStorage}, nullptr, services);
+
+        auto secureStorage = ctx->services()->resolve<ISecureStorageService>();
+        Assert::IsNotNull(secureStorage.get());
+        const std::vector<uint8_t> data{1, 2, 3};
+        secureStorage->set("token", data);
+        Assert::IsFalse(backing->get("token").has_value());
+        Assert::IsTrue(secureStorage->get("token").value() == data);
+        secureStorage->remove("token");
+        Assert::IsFalse(secureStorage->get("token").has_value());
+        Assert::ExpectException<std::invalid_argument>([&secureStorage]() {
+            secureStorage->set("..\\other", {});
+        });
+    }
+
+    TEST_METHOD(ScopedServices_FileExportAllowedWithCapability)
+    {
+        auto services = std::make_shared<ServiceContainer>();
+        auto backing = std::make_shared<TestFileExportService>();
+        services->registerService<IFileExportService>(backing);
+        auto ctx = makeScopedTestContext(
+            "source.mod", {Capability::FileExport}, nullptr, services);
+
+        auto fileExport = ctx->services()->resolve<IFileExportService>();
+        Assert::IsNotNull(fileExport.get());
+        const std::vector<uint8_t> data{4, 5, 6};
+        Assert::IsTrue(fileExport->exportData(data, "report.txt"));
+        Assert::AreEqual(std::string("source_2emod-report.txt"), backing->lastFilename);
+        Assert::IsTrue(backing->lastData == data);
+        Assert::ExpectException<std::invalid_argument>([&fileExport]() {
+            fileExport->exportData({}, "..\\other");
+        });
+    }
+
+    TEST_METHOD(ScopedServices_FileExportDeniedWithoutCapability)
+    {
+        auto services = std::make_shared<ServiceContainer>();
+        auto backing = std::make_shared<TestFileExportService>();
+        services->registerService<IFileExportService>(backing);
+        auto ctx = makeScopedTestContext("source.mod", {}, nullptr, services);
+
+        Assert::IsNull(ctx->services()->resolve<IFileExportService>().get());
+        Assert::IsTrue(backing->lastFilename.empty());
     }
 
     TEST_METHOD(ScopedContext_ExposesModuleIdentityAndCapabilities)

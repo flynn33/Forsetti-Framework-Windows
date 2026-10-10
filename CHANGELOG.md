@@ -4,7 +4,15 @@ All notable changes to Forsetti Framework - Windows are documented in this file.
 
 The project uses Conventional Commit style for commit messages. Release entries should group user-visible changes by area and should call out runtime contract changes, validation changes, and follow-up owner decisions.
 
-## [Unreleased] - 2026-06-20
+## [0.2.0] - 2026-10-10
+
+### Windows SDK
+
+- Added the installed `ForsettiFramework` CMake package for the three allowlisted Core, Platform, and HostTemplate products with separate x64 Debug/Release static libraries and public headers.
+- Added the complete Windows consumption policy, immutable policy/source provenance, consumer documentation, and declared JSON dependency/ABI requirements.
+- Added independent host/app/UI/service scaffolds and development-time generation/integration verification tools. The shared-database template remains manifest-only; host presentation uses app-owned native Win32 view factories.
+- Added SDK assembly, explicit payload inventory/hashes, archive checksums, and extracted/relocated consumer verification. Exact executed results belong to the selected artifact's manifest and verification record.
+- Aligned current policy and source headers with the authoritative Apache-2.0 license; retained framework version 0.2.0 and historical module/schema version distinctions.
 
 ### Build And Compilation
 
@@ -18,6 +26,9 @@ The project uses Conventional Commit style for commit messages. Release entries 
 - Added `IForsettiModuleContext` as the module lifecycle surface.
 - Added module registration records, canonical manifest hashing, and activation-time registration confirmation.
 - Added runtime requirement validation, scoped storage wrappers, and default-role provider resolution.
+- Fixed scoped storage, secure-storage, and file-export service resolution by preserving their public interface pointer types before type erasure; added allowed/denied capability regressions.
+- Fixed runtime test registration helpers to snapshot manifest entry points before moving the manifest, eliminating compiler-dependent argument evaluation failures.
+- Fixed graceful shutdown to preserve the persisted desired service/UI selection for the next restore-only boot while stopping active modules. Explicit deactivation and entitlement revocation still persist their changes; shutdown continues cleanup of other modules when a stop throws. Added persistence, relaunch, and stop-failure regressions.
 - Added schema-declared UI contribution validation and preserved declared theme masks.
 
 ### Host And Examples
@@ -31,11 +42,11 @@ The project uses Conventional Commit style for commit messages. Release entries 
 
 - Updated manifest validation for schema 1.1, recursive template/sample scanning, exact Windows platform casing, duplicate checks, and runtime requirement checks.
 - Renamed repository surface checks to neutral terminology and removed stale historical completion claims.
-- Native Debug/Release validation completed on Windows/MSVC with CMake, CTest, and PowerShell guardrails. All guardrail scripts pass. 173/177 tests pass (4 pre-existing test fixture bugs in service container type registration have been fixed).
+- Added native Debug/Release verification paths through CMake, CTest, and PowerShell guardrails. Current command results are recorded with the artifact's verification evidence rather than a historical README test count.
 
 ### Documentation
 
-- Aligned README and Wiki documentation with the merged 0.2.0 runtime, HostTemplate, split example targets, module registration, runtime requirements, platform adapters, and native-validation status.
+- Aligned tracked README and wiki.md documentation with the 0.2.0 SDK, runtime, HostTemplate, module registration, platform adapters, and artifact-specific validation evidence. The separately published GitHub Wiki is labeled historical; current repository and SDK documents are authoritative.
 
 ## [v0.1.0] - 2026-03-09
 

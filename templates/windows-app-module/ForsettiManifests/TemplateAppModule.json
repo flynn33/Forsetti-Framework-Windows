@@ -3,24 +3,43 @@
   "manifestTemplateVersion": "1.1",
   "moduleID": "com.forsetti.template.app",
   "displayName": "Template App Module",
-  "moduleVersion": {"major": 0, "minor": 1, "patch": 0, "prerelease": null},
+  "moduleVersion": {
+    "major": 0,
+    "minor": 1,
+    "patch": 0,
+    "prerelease": null
+  },
   "moduleType": "app",
-  "supportedPlatforms": ["Windows"],
-  "minForsettiVersion": {"major": 0, "minor": 2, "patch": 0, "prerelease": null},
+  "supportedPlatforms": [
+    "Windows"
+  ],
+  "minForsettiVersion": {
+    "major": 0,
+    "minor": 2,
+    "patch": 0,
+    "prerelease": null
+  },
   "maxForsettiVersion": null,
-  "capabilitiesRequested": ["toolbar_items", "view_injection", "event_publishing"],
+  "capabilitiesRequested": [
+    "view_injection",
+    "event_publishing"
+  ],
   "iapProductID": null,
   "entryPoint": "TemplateAppModule",
   "defaultModuleRole": "ui",
   "runtimeRequirements": {
     "io": [],
     "ui": {
-      "controlSchemeID": "template-app.controls",
-      "layoutID": "template-app.layout",
+      "controlSchemeID": "TemplateAppModule.controls",
+      "layoutID": "TemplateAppModule.layout",
       "themeIDs": [],
-      "viewIDs": ["TemplateAppShellView"],
-      "slotIDs": ["appShell"],
-      "toolbarItemIDs": ["template-app-toolbar"],
+      "viewIDs": [
+        "TemplateAppModuleView"
+      ],
+      "slotIDs": [
+        "content"
+      ],
+      "toolbarItemIDs": [],
       "routeIDs": [],
       "pointerIDs": []
     },

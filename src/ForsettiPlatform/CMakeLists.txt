@@ -1,5 +1,6 @@
 # ForsettiPlatform — Windows service implementations
-# Copyright (c) 2026 James Daley. All Rights Reserved.
+# Copyright (c) 2026 James Daley.
+# SPDX-License-Identifier: Apache-2.0
 
 add_library(ForsettiPlatform STATIC
     PlatformServices.cpp
@@ -10,8 +11,11 @@ add_library(ForsettiPlatform STATIC
 )
 
 target_include_directories(ForsettiPlatform PUBLIC
-    ${CMAKE_SOURCE_DIR}/include
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
+
+target_compile_features(ForsettiPlatform PUBLIC cxx_std_20)
 
 target_link_libraries(ForsettiPlatform PUBLIC
     ForsettiCore

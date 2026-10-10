@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
-// Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential. Patent Pending.
+// Copyright (c) 2026 James Daley.
+// SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 #include "ForsettiCore/ForsettiProtocols.h"
@@ -112,7 +112,10 @@ public:
     [[nodiscard]] ActivationRestoreResult lastRestoreResult() const;
 
 private:
+    friend class ForsettiRuntime;
+
     void activateModuleLocked(const std::string& moduleID, bool persistAfterActivation);
+    void deactivateModuleWithPersistence(const std::string& moduleID, bool persistAfterDeactivation);
 
     void validateResolvedModule(const IForsettiModule& module, const ModuleManifest& manifest) const;
     void validateConfirmedRegistration(const ModuleManifest& manifest) const;

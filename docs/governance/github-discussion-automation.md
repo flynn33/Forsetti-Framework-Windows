@@ -2,22 +2,22 @@
 
 Date: 2026-05-15
 Project: Forsetti Framework - Windows
-Status: discussion automation baseline, documentation sources refreshed
+Status: retained local automation design/configuration; hosted workflows absent from this checkout
 
 ## Purpose
 
-This document describes the GitHub automation added to this repository for discussion responses, topic seeding, and moderation.
+This document describes the retained design for discussion responses, topic seeding, and moderation. Configuration lives under `.github/`, and local helpers are [discussion_router.py](../../Scripts/github/discussion_router.py), [discussion_topic_seeder.py](../../Scripts/github/discussion_topic_seeder.py), and [discussion_moderator.py](../../Scripts/github/discussion_moderator.py). No GitHub Actions workflow files are present in this checkout; these assets do not establish that hosted automation is running. Adding or enabling hosted workflows requires separate authorization and execution evidence.
 
-Repository-tracked documents are the automation source set. The public Wiki is the reader-facing companion to those tracked docs; keep both aligned so discussion responses grounded in repository material remain accurate.
+Repository-tracked documents are the automation source set. The live public Wiki is a historical reference with outdated licensing, workflow, and native-validation statements. Current answers must follow tracked repository and SDK documents and the installed SDK manifest; publishing Wiki updates requires separate authorization.
 
 ## Discussion Response Routing
 
-The discussion-response workflow routes new GitHub Discussions topics and new discussion comments to one of three repo-grounded responders:
+The routing design assigns new GitHub Discussions topics and comments to one of three repo-grounded responders:
 - Technical Discussion Responder
 - Support Discussion Responder
 - Framework/Governance Discussion Responder
 
-It works by:
+The intended behavior is:
 - classifying each new discussion post or comment into technical, support, or framework/governance scope
 - searching only repository-tracked source material for matching information
 - replying with file-grounded references from the repo when relevant sources exist
@@ -32,9 +32,9 @@ Boundary rules:
 
 ## Discussion Topic Seeder
 
-The discussion-topic-seeder workflow scans repository truth on a schedule and opens category-level GitHub Discussions topics when equivalent seeded topics do not already exist.
+The topic-seeding design calls for scheduled scans of repository truth and category-level topics when equivalent seeded topics do not already exist. No schedule is installed by the retained configuration or local helper alone.
 
-It works by:
+The intended behavior is:
 - reading configured repository-tracked topic sources such as `README.md`, `wiki.md`, and `docs/governance/github-discussion-automation.md`
 - deriving candidate topics from repo headings and governance sections
 - classifying each candidate into the technical, support, or framework/governance family using the same repo-grounded routing logic as the response responders
@@ -44,13 +44,13 @@ It works by:
 Boundary rules:
 - generated topics must be derived from repository truth, not invented freeform prompts
 - topic bodies must point back to the repository source path and include a repository-grounded summary
-- when no new seeded topics are needed, the workflow exits without creating anything
+- when no new seeded topics are needed, a run exits without creating anything
 
 ## Discussion Moderation
 
-The discussion-moderation workflow enforces the repository code of conduct on GitHub Discussions content.
+The moderation design applies the repository code of conduct to GitHub Discussions content when run with authorized credentials. It does not establish an active hosted moderation workflow.
 
-It works by:
+The intended behavior is:
 - moderating newly created or edited discussions and discussion comments
 - rescanning recent discussion content on a six-hour schedule
 - deleting discussion threads or comments that match the repository moderation policy

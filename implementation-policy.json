@@ -5,7 +5,7 @@
     {
       "id": "R001",
       "name": "Native Technologies Only",
-      "description": "Use only C++20 standard library, Windows SDK, WinUI 3 (C++/WinRT), and Microsoft-provided tools (vcpkg, MSVC, CppUnitTest). nlohmann/json via vcpkg is allowed. No Boost, no non-Microsoft third-party tools.",
+      "description": "Use C++20 standard library, Windows SDK, and Microsoft-provided development tools (vcpkg, MSVC, CppUnitTest). nlohmann/json is an explicitly allowed third-party public dependency through vcpkg. Native Win32 scaffolds use public Windows view factory contracts; a complete WinUI renderer is not supplied. No new runtime dependencies without a reviewed policy change.",
       "severity": "error"
     },
     {
@@ -46,14 +46,20 @@
     },
     {
       "id": "R008",
-      "name": "Proprietary Licensing",
-      "description": "All source files carry proprietary header comment. Copyright James Daley 2026. All Rights Reserved.",
+      "name": "Apache-2.0 Licensing",
+      "description": "Retain Copyright James Daley 2026 and Apache-2.0 SPDX headers in source files. The root LICENSE contains the authoritative Apache License, Version 2.0 terms.",
       "severity": "error"
     },
     {
       "id": "R009",
       "name": "CI Build Parity",
-      "description": "Current remote pull request enforcement is limited to repository marker scanning while local verification uses Scripts/verify-forsetti-guardrails.ps1 for build, test, and guardrail evidence. Restore full remote build/test parity when the aligned workflow set is added.",
+      "description": "No hosted workflow files are present in this checkout. Run Scripts/verify-forsetti-guardrails.ps1 locally for build, test, and guardrail evidence; SDK consumers also require the local archive verification commands. Hosted build/test enforcement requires separately authorized workflow setup and verified execution.",
+      "severity": "error"
+    },
+    {
+      "id": "R010",
+      "name": "Installed Consumer Boundary",
+      "description": "Follow CONSUMPTION_POLICY.md: do not copy/vendor/embed the framework development repository, recreate its runtime source targets, or patch SDK/dependency internals for application behavior. Consumers use installed Forsetti:: products and their SDK-owned public headers, declared dependencies, and approved app-owned scaffold outputs. Required licenses/notices remain permitted; these integration rules do not amend LICENSE.",
       "severity": "error"
     }
   ],
@@ -81,7 +87,7 @@
       }
     ],
     "framework_behavior_invariants": [
-      "Only one UI module may be active at a time",
+      "UI and app modules share a single active UI/app surface slot",
       "Service modules may run concurrently without limit",
       "Module activation requires passing compatibility check AND entitlement check",
       "UIThemeMask capability is limited to declared, policy-approved UI theme IDs; framework host chrome remains framework-owned",

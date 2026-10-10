@@ -23,7 +23,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
- - OS: [e.g. macOS 15.x]
+ - OS: [e.g. Windows 11, build 26100]
  - App / package version: [e.g. 1.0.0]
 
 **Additional context**

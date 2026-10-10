@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
-// Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential. Patent Pending.
+// Copyright (c) 2026 James Daley.
+// SPDX-License-Identifier: Apache-2.0
 
 #include "CppUnitTest.h"
 #include "TestHelpers.h"
@@ -258,6 +258,30 @@ namespace {
         UIContributions uiContributions() const override { return contributions_; }
     };
 
+    class ThrowingStopModule final : public IForsettiModule {
+        ModuleDescriptor desc_;
+        ModuleManifest manifest_;
+        std::shared_ptr<int> stopCount_;
+    public:
+        ThrowingStopModule(
+            ModuleDescriptor desc,
+            ModuleManifest manifest,
+            std::shared_ptr<int> stopCount)
+            : desc_(std::move(desc))
+            , manifest_(std::move(manifest))
+            , stopCount_(std::move(stopCount))
+        {
+        }
+
+        ModuleDescriptor descriptor() const override { return desc_; }
+        ModuleManifest manifest() const override { return manifest_; }
+        void start(IForsettiModuleContext& /*ctx*/) override {}
+        void stop(IForsettiModuleContext& /*ctx*/) override {
+            ++*stopCount_;
+            throw std::runtime_error("module stop failed");
+        }
+    };
+
     void registerTrackingUIModule(
         ModuleRegistry& registry,
         const std::string& entryPoint,
@@ -291,8 +315,9 @@ namespace {
         UIContributions contributions,
         std::shared_ptr<TrackingUIModuleState> state,
         bool throwOnStart = false) {
+        const auto entryPoint = manifest.entryPoint;
         registry.registerModule(
-            manifest.entryPoint,
+            entryPoint,
             [manifest = std::move(manifest), contributions = std::move(contributions),
              state = std::move(state), throwOnStart]() -> std::unique_ptr<IForsettiModule> {
                 auto desc = makeDescriptor(
@@ -428,6 +453,133 @@ public:
 
         runtime.shutdown();
         Assert::IsFalse(runtime.isBooted());
+    }
+
+    TEST_METHOD(Runtime_ShutdownPreservesSelectionForNextBoot)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.service", "com.test.ui"});
+        TempRuntimeDir dir;
+        dir.writeManifest("service.json", makeServiceManifestJSON());
+        dir.writeManifest("ui.json", makeManifestJSON(
+            "com.test.ui", "Test UI", ModuleType::UI, "TestUIModule", {Capability::ToolbarItems}));
+
+        auto makeRegistry = [](std::shared_ptr<TrackingUIModuleState> uiState) {
+            ModuleRegistry registry;
+            registry.registerModule("TestServiceModule", []() -> std::unique_ptr<IForsettiModule> {
+                return std::make_unique<StubForsettiModule>(
+                    makeDescriptor("com.test.service", "Test Service", ModuleType::Service),
+                    makeManifest("com.test.service", "Test Service", ModuleType::Service, "TestServiceModule"));
+            });
+            registerTrackingUIModule(
+                registry, "TestUIModule", "com.test.ui", "Test UI", {Capability::ToolbarItems},
+                makeToolbarContributions("test-toolbar"), std::move(uiState));
+            return registry;
+        };
+
+        auto uiState = std::make_shared<TrackingUIModuleState>();
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(makeRegistry(uiState)), fix.entitlements, fix.eventBus, dir.path());
+        runtime.boot();
+        runtime.activateModule("com.test.service");
+        runtime.activateModule("com.test.ui");
+        const auto desiredState = fix.store->loadState();
+        Assert::IsTrue(desiredState.enabledServiceModuleIDs.contains("com.test.service"));
+        Assert::IsTrue(desiredState.enabledUIModuleIDs.contains("com.test.ui"));
+        Assert::AreEqual(std::string("com.test.ui"), desiredState.selectedUIModuleID.value());
+
+        fix.store->resetSaveCount();
+        runtime.shutdown();
+        Assert::IsFalse(runtime.isBooted());
+        Assert::IsTrue(runtime.moduleManager().enabledServiceModuleIDs().empty());
+        Assert::IsTrue(runtime.moduleManager().enabledUIModuleIDs().empty());
+        Assert::IsFalse(runtime.moduleManager().activeUIModuleID().has_value());
+        Assert::IsFalse(uiState->started);
+        Assert::AreEqual(1, uiState->stopCount);
+        Assert::IsTrue(fix.surfaceManager->currentToolbarItems().empty());
+        Assert::AreEqual(0, fix.store->saveCount());
+        Assert::IsTrue(fix.store->loadState() == desiredState);
+        runtime.shutdown();
+        Assert::AreEqual(0, fix.store->saveCount());
+
+        RuntimeTestFixture relaunched;
+        relaunched.store = fix.store;
+        relaunched.entitlements->setUnlocked({"com.test.service", "com.test.ui"});
+        auto restoredUIState = std::make_shared<TrackingUIModuleState>();
+        auto restoredRuntime = ForsettiRuntime(
+            relaunched.makeModuleManager(makeRegistry(restoredUIState)),
+            relaunched.entitlements, relaunched.eventBus, dir.path());
+        restoredRuntime.boot();
+        Assert::IsTrue(restoredRuntime.moduleManager().isModuleActive("com.test.service"));
+        Assert::IsTrue(restoredRuntime.moduleManager().isModuleActive("com.test.ui"));
+        Assert::AreEqual(std::string("com.test.ui"), restoredRuntime.moduleManager().activeUIModuleID().value());
+        Assert::IsTrue(restoredUIState->started);
+        Assert::AreEqual(size_t(1), relaunched.surfaceManager->currentToolbarItems().size());
+        Assert::IsTrue(restoredRuntime.moduleManager().lastRestoreResult().succeeded());
+        Assert::IsTrue(relaunched.store->loadState() == desiredState);
+        Assert::AreEqual(1, relaunched.store->saveCount());
+
+        restoredRuntime.deactivateModule("com.test.ui");
+        const auto explicitlyDisabled = relaunched.store->loadState();
+        Assert::IsTrue(explicitlyDisabled.enabledServiceModuleIDs.contains("com.test.service"));
+        Assert::IsTrue(explicitlyDisabled.enabledUIModuleIDs.empty());
+        Assert::IsFalse(explicitlyDisabled.selectedUIModuleID.has_value());
+        Assert::AreEqual(2, relaunched.store->saveCount());
+
+        relaunched.entitlements->setUnlocked({});
+        Assert::IsFalse(restoredRuntime.moduleManager().isModuleActive("com.test.service"));
+        Assert::IsTrue(relaunched.store->loadState() == ActivationState{});
+        Assert::AreEqual(3, relaunched.store->saveCount());
+    }
+
+    TEST_METHOD(Runtime_ShutdownStopFailurePreservesSelectionAndContinuesCleanup)
+    {
+        RuntimeTestFixture fix;
+        fix.entitlements->setUnlocked({"com.test.service", "com.test.z-service", "com.test.ui"});
+        TempRuntimeDir dir;
+        dir.writeManifest("service.json", makeServiceManifestJSON());
+        dir.writeManifest("z-service.json", makeManifestJSON(
+            "com.test.z-service", "Second Service", ModuleType::Service, "SecondServiceModule"));
+        dir.writeManifest("ui.json", makeManifestJSON(
+            "com.test.ui", "Test UI", ModuleType::UI, "TestUIModule", {Capability::ToolbarItems}));
+
+        auto stopCount = std::make_shared<int>(0);
+        auto uiState = std::make_shared<TrackingUIModuleState>();
+        ModuleRegistry registry;
+        registry.registerModule("TestServiceModule", [stopCount]() -> std::unique_ptr<IForsettiModule> {
+            return std::make_unique<ThrowingStopModule>(
+                makeDescriptor("com.test.service", "Test Service", ModuleType::Service),
+                makeManifest("com.test.service", "Test Service", ModuleType::Service, "TestServiceModule"),
+                stopCount);
+        });
+        registry.registerModule("SecondServiceModule", []() -> std::unique_ptr<IForsettiModule> {
+            return std::make_unique<StubForsettiModule>(
+                makeDescriptor("com.test.z-service", "Second Service", ModuleType::Service),
+                makeManifest("com.test.z-service", "Second Service", ModuleType::Service, "SecondServiceModule"));
+        });
+        registerTrackingUIModule(
+            registry, "TestUIModule", "com.test.ui", "Test UI", {Capability::ToolbarItems},
+            makeToolbarContributions("test-toolbar"), uiState);
+
+        auto runtime = ForsettiRuntime(
+            fix.makeModuleManager(std::move(registry)), fix.entitlements, fix.eventBus, dir.path());
+        runtime.boot();
+        runtime.activateModule("com.test.service");
+        runtime.activateModule("com.test.z-service");
+        runtime.activateModule("com.test.ui");
+        const auto desiredState = fix.store->loadState();
+        fix.store->resetSaveCount();
+
+        runtime.shutdown();
+        Assert::IsFalse(runtime.isBooted());
+        Assert::AreEqual(1, *stopCount);
+        Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.z-service"));
+        Assert::IsFalse(runtime.moduleManager().isModuleActive("com.test.ui"));
+        Assert::IsFalse(uiState->started);
+        Assert::AreEqual(1, uiState->stopCount);
+        Assert::IsTrue(fix.surfaceManager->currentToolbarItems().empty());
+        Assert::AreEqual(0, fix.store->saveCount());
+        Assert::IsTrue(fix.store->loadState() == desiredState);
     }
 
     TEST_METHOD(Runtime_BootDiscoversManifests)

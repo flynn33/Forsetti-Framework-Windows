@@ -2,11 +2,13 @@
 
 Date: 2026-05-15
 Project: Forsetti Framework - Windows
-Status: active discussion moderation baseline
+Status: retained moderation policy and local helper; hosted workflow absent from this checkout
 
 ## Purpose
 
 This policy defines the repository-side moderation rules for GitHub Discussions. It exists so automated moderation can remove clearly disallowed content without inventing standards outside the repository.
+
+The checkout retains [discussion_moderator.py](../../Scripts/github/discussion_moderator.py) and [moderation configuration](../../.github/discussion_moderation_policy.json), but no GitHub Actions workflow. The actions and schedule below describe the intended authorized automation; they are not evidence that a hosted bot or schedule is active. Hosted setup requires separate authorization and execution verification.
 
 The moderation policy applies to discussions about repository code, documentation, Wiki pages, governance, and support topics.
 
@@ -20,7 +22,7 @@ Repository authority wins for this repo. The bot does not create new social rule
 
 ## Moderated Content
 
-The bot removes discussion threads or discussion comments when the post contains:
+The moderation design calls for removing threads or comments when the post contains:
 - racist or ethnically demeaning slurs
 - vulgar, obscene, or foul language
 - harassing or demeaning attacks directed at other people
@@ -30,28 +32,28 @@ These categories operationalize the existing code of conduct language around har
 
 ## Enforcement Actions
 
-The moderation workflow does two forms of enforcement:
+The planned hosted workflow has two forms of enforcement:
 - event-driven moderation on newly created or edited discussions and discussion comments
 - scheduled board scans every six hours to catch anything missed by event delivery
 
-When a violation is detected, the bot:
+When an authorized run detects a violation, the intended actions are:
 - deletes the violating discussion or discussion comment
 - writes an incident note to the repository's moderation log issue
 - writes a job summary for auditability
 
 ## Optional Blocking
 
-GitHub's repository automation token can remove discussion content, but it does not automatically grant user-blocking authority. The bot therefore attempts blocking only when the repository owner supplies `DISCUSSION_MODERATION_ADMIN_TOKEN`.
+User blocking requires separately authorized credentials. The retained design permits blocking attempts only when the repository owner supplies `DISCUSSION_MODERATION_ADMIN_TOKEN` with the required permissions.
 
-When that token is present, the bot will attempt user blocking for severe categories only:
+When that token is present in an authorized run, the design limits blocking attempts to:
 - `hate_speech`
 - `violent_threats`
 
-If the admin token is not configured or does not have sufficient authority, the bot still removes the content and records the failed block attempt in the incident log.
+A failed blocking attempt must be recorded separately from any confirmed content removal. Missing or insufficient credentials do not establish that either action succeeded.
 
 ## Reporting Model
 
-Owner reporting is handled inside the repository through a single issue titled `Discussion Moderation Incident Log`. The workflow creates that issue if it does not already exist and appends incident comments to it.
+The reporting design uses a repository issue titled `Discussion Moderation Incident Log`. An authorized run should create that issue when needed and append incident comments; the retained files do not establish that this issue exists or that reporting is active.
 
 ## Boundaries
 

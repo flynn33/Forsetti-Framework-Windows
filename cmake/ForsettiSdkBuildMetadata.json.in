@@ -1,0 +1,32 @@
+{
+  "frameworkVersion": "@PROJECT_VERSION@",
+  "architecture": "x64",
+  "compilerId": "@CMAKE_CXX_COMPILER_ID@",
+  "compilerVersion": "@CMAKE_CXX_COMPILER_VERSION@",
+  "msvcVersion": "@MSVC_VERSION@",
+  "msvcToolsetVersion": "@MSVC_TOOLSET_VERSION@",
+  "vsPlatformToolset": "@CMAKE_VS_PLATFORM_TOOLSET@",
+  "windowsSdkVersion": "@FORSETTI_SDK_WINDOWS_SDK_VERSION@",
+  "generator": "@CMAKE_GENERATOR@",
+  "generatorPlatform": "@CMAKE_GENERATOR_PLATFORM@",
+  "cxxStandard": 20,
+  "exceptions": true,
+  "rtti": true,
+  "nativeWcharT": true,
+  "configurations": {
+    "Debug": { "runtimeLibrary": "/MDd", "iteratorDebugLevel": 2 },
+    "Release": { "runtimeLibrary": "/MD", "iteratorDebugLevel": 0 }
+  },
+  "dependencies": {
+    "nlohmann-json": {
+      "version": "@FORSETTI_SDK_NLOHMANN_JSON_VERSION@",
+      "portVersion": @FORSETTI_SDK_NLOHMANN_JSON_PORT_VERSION@,
+      "vcpkgBuiltinBaseline": "@FORSETTI_SDK_VCPKG_BASELINE@",
+      "jsonDiagnostics": 0,
+      "jsonDiagnosticPositions": 0,
+      "jsonUseLegacyDiscardedValueComparison": 0,
+      "namespaceNoVersion": 0,
+      "license": "MIT"
+    }
+  }
+}

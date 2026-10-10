@@ -1,5 +1,5 @@
 # Path-based label rules for actions/labeler
-# Used by the Auto Label PR workflow.
+# Retained configuration; no Auto Label PR workflow is present in this checkout.
 
 documentation:
   - changed-files:

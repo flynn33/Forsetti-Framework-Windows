@@ -1,5 +1,6 @@
 # Forsetti Framework - Module Manifest Validation Script
-# Copyright (c) 2026 James Daley. All Rights Reserved.
+# Copyright (c) 2026 James Daley.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Validates all ForsettiManifests JSON files for correct schema,
 # required fields, and naming conventions.

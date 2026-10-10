@@ -1,0 +1,79 @@
+# Copyright (c) 2026 James Daley.
+# SPDX-License-Identifier: Apache-2.0
+
+@PACKAGE_INIT@
+
+set(ForsettiFramework_VERSION "@PROJECT_VERSION@")
+set(ForsettiFramework_ARCHITECTURE "x64")
+set(ForsettiFramework_COMPILER_VERSION "@CMAKE_CXX_COMPILER_VERSION@")
+set(ForsettiFramework_MSVC_TOOLSET_VERSION "@MSVC_TOOLSET_VERSION@")
+set(ForsettiFramework_WINDOWS_SDK_VERSION "@FORSETTI_SDK_WINDOWS_SDK_VERSION@")
+set(ForsettiFramework_NLOHMANN_JSON_VERSION "@FORSETTI_SDK_NLOHMANN_JSON_VERSION@")
+
+if(NOT WIN32 OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(ForsettiFramework_FOUND FALSE)
+    set(ForsettiFramework_NOT_FOUND_MESSAGE "This Forsetti SDK requires Windows and Microsoft MSVC with CXX enabled before find_package.")
+    return()
+endif()
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8 OR
+   NOT CMAKE_CXX_COMPILER_ARCHITECTURE_ID STREQUAL "x64")
+    set(ForsettiFramework_FOUND FALSE)
+    set(ForsettiFramework_NOT_FOUND_MESSAGE "This Forsetti SDK supports x64 only. Configure the consumer with -A x64.")
+    return()
+endif()
+if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL ForsettiFramework_COMPILER_VERSION OR
+   NOT MSVC_TOOLSET_VERSION STREQUAL ForsettiFramework_MSVC_TOOLSET_VERSION)
+    set(ForsettiFramework_FOUND FALSE)
+    set(ForsettiFramework_NOT_FOUND_MESSAGE "This Forsetti SDK was built with MSVC @CMAKE_CXX_COMPILER_VERSION@, toolset @MSVC_TOOLSET_VERSION@. Use that exact compiler/toolset; other combinations are unverified.")
+    return()
+endif()
+
+if(CMAKE_CONFIGURATION_TYPES)
+    set(_forsetti_consumer_configs "${CMAKE_CONFIGURATION_TYPES}")
+else()
+    set(_forsetti_consumer_configs "${CMAKE_BUILD_TYPE}")
+    if(CMAKE_BUILD_TYPE STREQUAL "")
+        set(ForsettiFramework_FOUND FALSE)
+        set(ForsettiFramework_NOT_FOUND_MESSAGE "Select CMAKE_BUILD_TYPE=Debug or Release when consuming this SDK with a single-configuration generator.")
+        return()
+    endif()
+endif()
+foreach(_config IN LISTS _forsetti_consumer_configs)
+    if(NOT _config STREQUAL "Debug" AND NOT _config STREQUAL "Release")
+        set(ForsettiFramework_FOUND FALSE)
+        set(ForsettiFramework_NOT_FOUND_MESSAGE "Unsupported Forsetti SDK configuration '${_config}'. Select only Debug and Release (CMAKE_CONFIGURATION_TYPES=Debug;Release for Visual Studio).")
+        return()
+    endif()
+endforeach()
+if(DEFINED CMAKE_MSVC_RUNTIME_LIBRARY AND
+   NOT CMAKE_MSVC_RUNTIME_LIBRARY STREQUAL "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    # Fixed values are valid for a matching single-configuration consumer.
+    if(NOT (NOT CMAKE_CONFIGURATION_TYPES AND
+        ((CMAKE_BUILD_TYPE STREQUAL "Debug" AND CMAKE_MSVC_RUNTIME_LIBRARY STREQUAL "MultiThreadedDebugDLL") OR
+         (CMAKE_BUILD_TYPE STREQUAL "Release" AND CMAKE_MSVC_RUNTIME_LIBRARY STREQUAL "MultiThreadedDLL"))))
+        set(ForsettiFramework_FOUND FALSE)
+        set(ForsettiFramework_NOT_FOUND_MESSAGE "This Forsetti SDK requires /MDd Debug and /MD Release. Remove the incompatible CMAKE_MSVC_RUNTIME_LIBRARY override.")
+        return()
+    endif()
+endif()
+
+include(CMakeFindDependencyMacro)
+find_dependency(nlohmann_json @FORSETTI_SDK_NLOHMANN_JSON_VERSION@ EXACT CONFIG)
+include("${CMAKE_CURRENT_LIST_DIR}/ForsettiFrameworkTargets.cmake")
+foreach(_product ForsettiCore ForsettiPlatform ForsettiHostTemplate)
+    set(_target "Forsetti::${_product}")
+    # Explicit mappings prevent CMake's fallback to another imported config.
+    set_target_properties(${_target} PROPERTIES
+        MAP_IMPORTED_CONFIG_DEBUG Debug
+        MAP_IMPORTED_CONFIG_RELEASE Release)
+    foreach(_config Debug Release)
+        string(TOUPPER "${_config}" _upper_config)
+        get_target_property(_location ${_target} "IMPORTED_LOCATION_${_upper_config}")
+        if(NOT _location OR NOT EXISTS "${_location}")
+            set(ForsettiFramework_FOUND FALSE)
+            set(ForsettiFramework_NOT_FOUND_MESSAGE "The ${_config} payload for ${_target} is missing. Install both SDK configurations before consuming the package.")
+            return()
+        endif()
+    endforeach()
+endforeach()
+check_required_components(ForsettiFramework)

@@ -1,5 +1,6 @@
 # Forsetti Framework - Guardrail Script Regression Tests
-# Copyright (c) 2026 James Daley. All Rights Reserved.
+# Copyright (c) 2026 James Daley.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Exercises script-only guardrail behavior that is difficult to cover from
 # native C++ tests.

@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
-// Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential. Patent Pending.
+// Copyright (c) 2026 James Daley.
+// SPDX-License-Identifier: Apache-2.0
 
 #include "ForsettiCore/ForsettiRuntime.h"
 #include <vector>
@@ -73,7 +73,7 @@ void ForsettiRuntime::shutdown()
     // Deactivate services first
     for (const auto& moduleID : serviceIDs) {
         try {
-            moduleManager_->deactivateModule(moduleID);
+            moduleManager_->deactivateModuleWithPersistence(moduleID, false);
         } catch (...) {
             // Best-effort during shutdown
         }
@@ -82,7 +82,7 @@ void ForsettiRuntime::shutdown()
     // Then deactivate UI modules
     for (const auto& moduleID : uiIDs) {
         try {
-            moduleManager_->deactivateModule(moduleID);
+            moduleManager_->deactivateModuleWithPersistence(moduleID, false);
         } catch (...) {
             // Best-effort during shutdown
         }

@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
-// Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential. Patent Pending.
+// Copyright (c) 2026 James Daley.
+// SPDX-License-Identifier: Apache-2.0
 
 #include "ForsettiCore/ModuleManager.h"
 #include "ForsettiCore/ManifestLoader.h"
@@ -425,6 +425,11 @@ void ModuleManager::activateUIModule(
 
 void ModuleManager::deactivateModule(const std::string& moduleID)
 {
+    deactivateModuleWithPersistence(moduleID, true);
+}
+
+void ModuleManager::deactivateModuleWithPersistence(const std::string& moduleID, bool persistAfterDeactivation)
+{
     std::lock_guard<std::mutex> lock(mutex_);
 
     // 1. Find loaded module
@@ -456,8 +461,10 @@ void ModuleManager::deactivateModule(const std::string& moduleID)
     loadedModules_.erase(it);
     moduleContexts_.erase(moduleID);
 
-    // 6. Persist state
-    persistState();
+    // 6. Persist user-driven changes, but preserve selection during shutdown.
+    if (persistAfterDeactivation) {
+        persistState();
+    }
 }
 
 // ---------------------------------------------------------------------------

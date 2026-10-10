@@ -1,0 +1,40 @@
+// Copyright (c) 2026 James Daley.
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+// This installed usage requirement checks the consuming target, including
+// overrides made after find_package. The libraries exchange MSVC STL objects.
+#if !defined(_MSC_VER) || defined(__clang__) || !defined(_M_X64)
+#error "Forsetti Windows SDK requires Microsoft MSVC for x64."
+#endif
+#if !defined(_MT) || !defined(_DLL)
+#error "Forsetti Windows SDK requires /MDd for Debug and /MD for Release; /MT is unsupported."
+#endif
+#if !defined(_CPPUNWIND) || !defined(_CPPRTTI) || !defined(_NATIVE_WCHAR_T_DEFINED)
+#error "Forsetti Windows SDK requires exceptions, RTTI, and native wchar_t."
+#endif
+
+#include <vector>
+#include <nlohmann/json.hpp>
+
+#if NLOHMANN_JSON_VERSION_MAJOR != 3 || NLOHMANN_JSON_VERSION_MINOR != 12 || NLOHMANN_JSON_VERSION_PATCH != 0
+#error "Forsetti Windows SDK requires nlohmann_json 3.12.0."
+#endif
+#if JSON_DIAGNOSTICS || JSON_DIAGNOSTIC_POSITIONS || JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON || NLOHMANN_JSON_NAMESPACE_NO_VERSION
+#error "Forsetti Windows SDK requires the default nlohmann_json ABI settings."
+#endif
+
+#if !defined(FORSETTI_SDK_ITERATOR_DEBUG_LEVEL)
+#error "Consume Forsetti through its installed CMake targets."
+#elif _ITERATOR_DEBUG_LEVEL != FORSETTI_SDK_ITERATOR_DEBUG_LEVEL
+#error "Forsetti Windows SDK and consumer _ITERATOR_DEBUG_LEVEL differ."
+#endif
+#if FORSETTI_SDK_ITERATOR_DEBUG_LEVEL == 2 && !defined(_DEBUG)
+#error "The Debug Forsetti Windows SDK requires the Debug /MDd runtime."
+#elif FORSETTI_SDK_ITERATOR_DEBUG_LEVEL == 0 && defined(_DEBUG)
+#error "The Release Forsetti Windows SDK requires the Release /MD runtime."
+#endif
+#if !_HAS_EXCEPTIONS
+#error "Forsetti Windows SDK requires _HAS_EXCEPTIONS=1."
+#endif

@@ -1,5 +1,6 @@
 # Forsetti Framework - PR Compatibility Check Script
-# Copyright (c) 2026 James Daley. All Rights Reserved.
+# Copyright (c) 2026 James Daley.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Validates pull request changes for compatibility with framework rules:
 # - No direct module-to-module communication

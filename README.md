@@ -1,5 +1,9 @@
 # Forsetti Framework - Windows
 
+**Consumer applications must not copy or vendor this repository as their starting tree.** Read the complete [Windows consumption policy](CONSUMPTION_POLICY.md). Install the [Forsetti Windows SDK](SDK/README.md) outside application source, consume its installed CMake products, and generate app-owned files from approved scaffolds.
+
+The framework and SDK version is **0.2.0**, aligned with the root CMake project, vcpkg manifest, and `ForsettiVersion::current`. The x64 SDK supplies separately mapped Debug/Release static libraries for Core, Platform, and HostTemplate, their public headers, consumer tools, templates, and documentation. See [SDK compatibility](SDK/Documentation/Compatibility.md) for dependency/toolchain requirements and the packaged `sdk-manifest.json` for exact artifact provenance and verification evidence.
+
 Forsetti Framework - Windows is a modular runtime framework for Windows 11 applications. It is built with C++20, MSVC, CMake, vcpkg, and native Windows SDK service adapters.
 
 The framework centers on a compatibility-governed module model: modules declare identity, platform support, capabilities, entitlement requirements, and optional UI contributions. The runtime validates those declarations before activation, scopes module access to approved services, and keeps UI surface state under framework control.
@@ -105,11 +109,13 @@ Activation fails before `start()` when compatibility, entitlement, capability, o
 | `templates` | Windows module and host starter templates |
 | `tests` | Native CppUnitTest suites surfaced through CTest |
 | `Scripts` | Local guardrail, compatibility, manifest, dependency, and discussion automation scripts |
-| `.github` | Pull request template, label/release metadata, discussion automation config, and remote marker workflow |
+| `.github` | Pull request template, label/release metadata, and discussion automation config; no hosted workflows are present in this checkout |
 | `docs/governance` | Repository-grounded governance and discussion automation documents |
 | `.forsetti/alignment` | Phase evidence and acceptance reports for runtime-boundary alignment work |
 
 ## Build And Test
+
+The commands below build the framework-maintenance checkout. Application onboarding uses the installed package and [SDK Getting Started](SDK/Documentation/Getting-Started.md), with `find_package(ForsettiFramework CONFIG REQUIRED)` and selected `Forsetti::` products.
 
 ### Prerequisites
 
@@ -147,6 +153,39 @@ The wrapper performs:
 6. Manifest validation.
 7. Pull request compatibility checks.
 8. Script regression tests.
+9. SDK scaffold and integration-tool regression fixtures in Windows PowerShell and PowerShell 7.
+
+### Build, Package, And Verify The SDK
+
+Use PowerShell 7.2 or newer, a working external `VCPKG_ROOT`, and Visual Studio 2022 native C++ tools. Read [CONSUMPTION_POLICY.md](CONSUMPTION_POLICY.md) before changing distribution inputs. `templates/` contains the canonical scaffold payloads; `SDK/` contains curated consumer documents/tools. SDK assembly selects approved files explicitly; it does not copy a repository and remove unwanted content afterward.
+
+From a reviewed, clean source commit:
+
+```powershell
+pwsh -NoProfile -File .\Scripts\Build-ForsettiSDK.ps1
+$recordPath = Join-Path $PWD 'out\sdk\latest-build.json'
+$record = Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json
+$verificationRoot = Join-Path $env:TEMP ('Forsetti SDK verification ' + [guid]::NewGuid().ToString('N'))
+pwsh -NoProfile -File .\Scripts\Verify-ForsettiSDK.ps1 `
+    -Archive $record.archive -BuildRecord $recordPath -WorkRoot $verificationRoot
+```
+
+The build command creates a source snapshot under ignored `out/sdk/`, builds/installs all three products in Debug and Release, and writes the archive, external `SHA256SUMS`, logs, and build record. `-VisualStudioInstance <path>` selects an installed VS 2022 instance explicitly. `-AllowDirty` is for an unverified candidate; it is not release verification.
+
+The verifier extracts/relocates the archive outside the framework worktree, temporarily makes that snapshot's source/build paths unavailable, resolves the declared separate dependency, and checks independent consumers, public headers, runtime success/rejection, native presentation, payload hashes, and negative fixtures. It restores the original paths and writes `Verification-Results.json` under the selected verification directory. Run the normal maintainer Debug/Release CTest and guardrails separately; consumer verification does not replace them.
+
+After passing verification of clean source, assemble a new output with that report:
+
+```powershell
+$verifiedOutput = Join-Path $PWD ('out\sdk\verified-' + [guid]::NewGuid().ToString('N'))
+pwsh -NoProfile -File .\Scripts\Package-ForsettiSDK.ps1 `
+    -SourceRoot $record.sourceRoot -InstallRoot $record.installRoot `
+    -BuildRoot $record.buildRoot -SourceRevision $record.sourceRevision `
+    -OutputDirectory $verifiedOutput `
+    -VerificationReport (Join-Path $verificationRoot 'Verification-Results.json')
+```
+
+Review the final archive inventory, complete policy bytes/hash against the selected Git commit, version sources, dependency/toolchain settings, executed results, and external ZIP checksum. Repeated assembly from the same built payload supports comparison; independently rebuilt MSVC binary identity is not promised. Keep staging/build outputs ignored and synchronize the selected release commit/tag with the local checkout when publishing.
 
 ## Module Manifest Baseline
 
@@ -216,23 +255,25 @@ Repository documents:
 - `README.md` - primary repository entry point.
 - `CHANGELOG.md` - release and notable change history.
 - `CONTRIBUTING.md` - open-source use policy; outside contributions are not accepted.
-- `wiki.md` - tracked index for the public GitHub Wiki.
+- `wiki.md` - tracked index for the historical public GitHub Wiki.
 - `docs/governance/github-discussion-automation.md` - discussion automation design.
 - `docs/governance/discussion_moderation_policy.md` - discussion moderation policy.
 - `implementation-policy.json` - machine-readable coding policy and invariants.
 - `framework-policy.json` - machine-readable framework architecture and API summary.
+- [CONSUMPTION_POLICY.md](CONSUMPTION_POLICY.md) - complete Windows supported-integration boundary, also shipped unchanged in the SDK.
+- [SDK/README.md](SDK/README.md) - installed SDK onboarding, tools, and consumer documentation.
 
-Public Wiki:
+Historical public Wiki:
 
 - [Forsetti Framework - Windows Wiki](https://github.com/flynn33/Forsetti-Framework-Windows/wiki)
 
-The Wiki contains detailed pages for architecture, runtime lifecycle, module manifests, runtime requirements, module registration, capabilities, UI surface behavior, platform services, build/test guardrails, governance, API reference, and roadmap decisions. The repository-tracked `wiki.md` file mirrors the live page set and should be updated with the live Wiki.
+The live Wiki is a historical reference for architecture and runtime concepts. Its licensing, workflow, and native-validation statements have not been brought into alignment with the current repository and SDK. Use the repository's [LICENSE](LICENSE), [consumption policy](CONSUMPTION_POLICY.md), [SDK documentation](SDK/README.md), and the installed `sdk-manifest.json` as the current authority. The tracked `wiki.md` indexes the historical pages; it does not establish that the live pages are current.
 
 ## Current Alignment Status
 
 Runtime-boundary alignment is merged into `main`, and evidence is tracked under `.forsetti/alignment`. The canonical local verification path remains `.\Scripts\verify-forsetti-guardrails.ps1` on a Windows/MSVC environment with CMake, CTest, PowerShell, and `VCPKG_ROOT` available.
 
-Native Debug/Release validation is complete. All guardrail scripts pass. 173/177 tests pass (4 pre-existing test fixture bugs in service container type registration have been fixed).
+Historical alignment reports are not verification of a new SDK archive. Record current native Debug/Release builds, CTest/guardrails, relocated clean-consumer runs, native presentation checks, policy equality, inventory, and archive hashes in the SDK manifest and accompanying verification evidence. Do not infer an archive's release readiness from an old test count.
 
 ## Patent Notice
 

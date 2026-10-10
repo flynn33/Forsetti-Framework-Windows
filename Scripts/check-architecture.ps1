@@ -1,5 +1,6 @@
 # Forsetti Framework — Architecture Enforcement Script
-# Copyright (c) 2026 James Daley. All Rights Reserved.
+# Copyright (c) 2026 James Daley.
+# SPDX-License-Identifier: Apache-2.0
 #
 # Scans #include directives to enforce one-way dependency layering (R006).
 # Scans for non-final classes (R005).

@@ -1,5 +1,6 @@
 # ForsettiExampleServiceModule
-# Copyright (c) 2026 James Daley. All Rights Reserved.
+# Copyright (c) 2026 James Daley.
+# SPDX-License-Identifier: Apache-2.0
 
 add_library(ForsettiExampleServiceModule STATIC
     ExampleServiceModule.cpp

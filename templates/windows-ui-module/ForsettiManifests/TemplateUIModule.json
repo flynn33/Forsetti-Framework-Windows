@@ -3,26 +3,44 @@
   "manifestTemplateVersion": "1.1",
   "moduleID": "com.forsetti.template.ui",
   "displayName": "Template UI Module",
-  "moduleVersion": {"major": 0, "minor": 1, "patch": 0, "prerelease": null},
+  "moduleVersion": {
+    "major": 0,
+    "minor": 1,
+    "patch": 0,
+    "prerelease": null
+  },
   "moduleType": "ui",
-  "supportedPlatforms": ["Windows"],
-  "minForsettiVersion": {"major": 0, "minor": 2, "patch": 0, "prerelease": null},
+  "supportedPlatforms": [
+    "Windows"
+  ],
+  "minForsettiVersion": {
+    "major": 0,
+    "minor": 2,
+    "patch": 0,
+    "prerelease": null
+  },
   "maxForsettiVersion": null,
-  "capabilitiesRequested": ["toolbar_items", "view_injection", "routing_overlay"],
+  "capabilitiesRequested": [
+    "view_injection"
+  ],
   "iapProductID": null,
   "entryPoint": "TemplateUIModule",
   "defaultModuleRole": "ui",
   "runtimeRequirements": {
     "io": [],
     "ui": {
-      "controlSchemeID": "template-ui.controls",
-      "layoutID": "template-ui.layout",
+      "controlSchemeID": "TemplateUIModule.controls",
+      "layoutID": "TemplateUIModule.layout",
       "themeIDs": [],
-      "viewIDs": ["TemplateHomeView", "TemplateOverlayView"],
-      "slotIDs": ["home", "overlay"],
-      "toolbarItemIDs": ["template-toolbar"],
-      "routeIDs": ["template-overlay-route"],
-      "pointerIDs": ["template-pointer"]
+      "viewIDs": [
+        "TemplateUIModuleView"
+      ],
+      "slotIDs": [
+        "content"
+      ],
+      "toolbarItemIDs": [],
+      "routeIDs": [],
+      "pointerIDs": []
     },
     "dataIsolation": {
       "mode": "private_to_module",

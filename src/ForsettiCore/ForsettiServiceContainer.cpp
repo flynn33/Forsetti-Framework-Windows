@@ -1,6 +1,6 @@
 // Forsetti Framework for Windows
-// Copyright (c) 2026 James Daley. All Rights Reserved.
-// Proprietary and Confidential. Patent Pending.
+// Copyright (c) 2026 James Daley.
+// SPDX-License-Identifier: Apache-2.0
 
 #include "ForsettiCore/ForsettiServiceContainer.h"
 #include <algorithm>
@@ -134,19 +134,19 @@ std::any CapabilityScopedServiceProvider::resolveAny(const std::type_index& type
     }
 
     if (type == std::type_index(typeid(IStorageService))) {
-        return std::make_shared<ScopedStorageService>(
+        return std::shared_ptr<IStorageService>(std::make_shared<ScopedStorageService>(
             moduleID_,
-            std::any_cast<std::shared_ptr<IStorageService>>(resolved));
+            std::any_cast<std::shared_ptr<IStorageService>>(resolved)));
     }
     if (type == std::type_index(typeid(ISecureStorageService))) {
-        return std::make_shared<ScopedSecureStorageService>(
+        return std::shared_ptr<ISecureStorageService>(std::make_shared<ScopedSecureStorageService>(
             moduleID_,
-            std::any_cast<std::shared_ptr<ISecureStorageService>>(resolved));
+            std::any_cast<std::shared_ptr<ISecureStorageService>>(resolved)));
     }
     if (type == std::type_index(typeid(IFileExportService))) {
-        return std::make_shared<ScopedFileExportService>(
+        return std::shared_ptr<IFileExportService>(std::make_shared<ScopedFileExportService>(
             moduleID_,
-            std::any_cast<std::shared_ptr<IFileExportService>>(resolved));
+            std::any_cast<std::shared_ptr<IFileExportService>>(resolved)));
     }
 
     return resolved;
