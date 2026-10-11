@@ -46,8 +46,8 @@
     },
     {
       "id": "R008",
-      "name": "Apache-2.0 Licensing",
-      "description": "Retain Copyright James Daley 2026 and Apache-2.0 SPDX headers in source files. The root LICENSE contains the authoritative Apache License, Version 2.0 terms.",
+      "name": "Dual Licensing",
+      "description": "Retain Copyright James Daley 2026 in source files. The root LICENSE contains the authoritative dual-license terms. Non-commercial, academic, and personal use is free. Commercial use requires a separate written license.",
       "severity": "error"
     },
     {

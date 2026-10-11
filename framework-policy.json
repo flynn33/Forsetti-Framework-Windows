@@ -3,7 +3,7 @@
   "projectName": "Forsetti Framework — Windows",
   "projectDescription": "A modular runtime framework for Windows 11, built with C++20, a sealed host composition layer, and Windows SDK service adapters.",
   "owner": "James Daley",
-  "license": "Apache-2.0",
+  "license": "LicenseRef-RavenForge-Dual",
   "principles": [
     "Strict modularity: all features live inside first- or third-party modules",
     "Framework-mediated everything: modules never talk to each other directly",
