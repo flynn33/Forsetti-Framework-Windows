@@ -28,4 +28,4 @@ The tools under `Tools/` generate independent app-owned projects/modules and che
 | [Release Notes](Release-Notes.md) | Delivery scope and verification evidence location. |
 | [Third-Party Notices](THIRD-PARTY-NOTICES.md) | Declared JSON dependency and its license notices. |
 
-Before using an archive, check its external `SHA256SUMS`; inspect `sdk-manifest.json` for source revision, candidate/release status, toolchain/configuration requirements, file inventory/hashes, and test evidence. No historical README test count substitutes for this archive's actual verification record. Forsetti is dual-licensed. See [LICENSE](LICENSE).
+Before using an archive, check its external `SHA256SUMS`; inspect `sdk-manifest.json` for source revision, candidate/release status, toolchain/configuration requirements, file inventory/hashes, and test evidence. No historical README test count substitutes for this archive's actual verification record. Forsetti is licensed under the MIT License. See [LICENSE](LICENSE).
