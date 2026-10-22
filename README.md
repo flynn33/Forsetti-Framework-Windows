@@ -282,7 +282,7 @@ The architecture and design of Forsetti are the subject of a pending U.S. patent
 
 ## Contributing
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
 
 Outside contributions to this repository are not accepted. Pull requests and collaboration requests will not be reviewed or merged. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -290,5 +290,5 @@ Outside contributions to this repository are not accepted. Pull requests and col
 
 Copyright 2026 James Daley
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
 See the [LICENSE](LICENSE) file for the full terms.
